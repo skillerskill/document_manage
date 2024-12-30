@@ -43,7 +43,7 @@ session_start();
                     <i class="fas fa-folder mr-3"></i>
                     Pastas
                 </a>
-                <a class="flex items-center py-2 text-blue-300" href="subpasta.php">
+                <a class="flex items-center py-2 text-blue-300" href="subpastas.php">
                     <i class="fas fa-folder-open mr-3"></i>
                     Subpastas
                 </a>
