@@ -29,17 +29,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     if ($checkStmt->num_rows > 0) {
         echo json_encode(['status' => 'error', 'message' => 'Folder already exists. Please choose a different name.']);
     } else {
+        // Crie o diretório de upload
+        $uploadDir = "uploads/department_$departmentId/$folderName";
+        if (!file_exists($uploadDir)) {
+            mkdir($uploadDir, 0777, true);
+        }
+
         // Insira os dados no banco de dados
-        $stmt = $conn->prepare("INSERT INTO folders (name, description, department_id) VALUES (?, ?, ?)");
-        $stmt->bind_param("ssi", $folderName, $folderDescription, $departmentId);
+        $stmt = $conn->prepare("INSERT INTO folders (name, description, department_id, path) VALUES (?, ?, ?, ?)");
+        $stmt->bind_param("ssis", $folderName, $folderDescription, $departmentId, $uploadDir);
 
         if ($stmt->execute()) {
-            // Crie o diretório de upload
-            $folderId = $stmt->insert_id;
-            $uploadDir = "uploads/department_$departmentId/$folderName";
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
             echo json_encode(['status' => 'success', 'message' => 'Folder added successfully']);
         } else {
             echo json_encode(['status' => 'error', 'message' => 'Failed to add folder']);
