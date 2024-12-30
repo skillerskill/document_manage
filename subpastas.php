@@ -22,7 +22,7 @@ session_start();
             <span class="ml-2 text-xl font-semibold">MAPTS<sup>1</sup></span>
         </div>
         <nav class="flex-1 px-4 py-6">
-            <a class="flex items-center py-2 text-blue-300" href="#">
+            <a class="flex items-center py-2 text-blue-300" href="dashboarde.php">
                 <i class="fas fa-home mr-3"></i>
                 Início
             </a>
@@ -32,18 +32,18 @@ session_start();
                     <i class="fas fa-file-alt mr-3"></i>
                     DOCUMENTOS
                 </a>
-                <a class="flex items-center py-2 text-blue-300" href="#">
+                <a class="flex items-center py-2 text-blue-300" href="departament.php">
                     <i class="fas fa-sitemap mr-3"></i>
                     Departamento
                 </a>
             </div>
             <div class="mt-6">
                 <h3 class="text-sm font-semibold text-blue-400">ADDONS</h3>
-                <a class="flex items-center py-2 mt-2 text-blue-300" href="#">
+                <a class="flex items-center py-2 mt-2 text-blue-300" href="pasta.php">
                     <i class="fas fa-folder mr-3"></i>
                     Pastas
                 </a>
-                <a class="flex items-center py-2 text-blue-300" href="#">
+                <a class="flex items-center py-2 text-blue-300" href="subpasta.php">
                     <i class="fas fa-folder-open mr-3"></i>
                     Subpastas
                 </a>
