@@ -14,43 +14,50 @@ if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Verifique se o formulário foi enviado
+// Verifique se os dados foram enviados via POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
-    $folderId = isset($_POST['folderId']) ? intval($_POST['folderId']) : 0;
-    $subfolderName = isset($_POST['subfolderName']) ? $_POST['subfolderName'] : '';
-    $subfolderDescription = isset($_POST['subfolderDescription']) ? $_POST['subfolderDescription'] : '';
+    $folderId = $_POST['folderId'];
+    $folderPath = $_POST['folderPath'];
+    $subfolderName = $_POST['subfolderName'];
+    $subfolderDescription = $_POST['subfolderDescription'];
 
-    // Verifique se a subpasta já existe na mesma pasta
-    $checkStmt = $conn->prepare("SELECT id FROM subfolders WHERE name = ? AND folder_id = ?");
-    $checkStmt->bind_param("si", $subfolderName, $folderId);
-    $checkStmt->execute();
-    $checkStmt->store_result();
-
-    if ($checkStmt->num_rows > 0) {
-        echo json_encode(['status' => 'error', 'message' => 'Subfolder already exists in this folder. Please choose a different name.']);
-    } else {
-        // Insira os dados no banco de dados
-        $stmt = $conn->prepare("INSERT INTO subfolders (name, description, folder_id) VALUES (?, ?, ?)");
-        $stmt->bind_param("ssi", $subfolderName, $subfolderDescription, $folderId);
-
-        if ($stmt->execute()) {
-            // Crie o diretório de upload
-            $subfolderId = $stmt->insert_id;
-            $uploadDir = "uploads/folder_$folderId/$subfolderName";
-            if (!file_exists($uploadDir)) {
-                mkdir($uploadDir, 0777, true);
-            }
-            echo json_encode(['status' => 'success', 'message' => 'Subfolder added successfully']);
-        } else {
-            echo json_encode(['status' => 'error', 'message' => 'Failed to add subfolder']);
-        }
-
-        $stmt->close();
+    // Validação básica
+    if (empty($folderId) || empty($subfolderName)) {
+        $response = array(
+            "status" => "error",
+            "message" => "ID da pasta e nome da subpasta são obrigatórios."
+        );
+        echo json_encode($response);
+        exit();
     }
 
-    $checkStmt->close();
+    // Construa o caminho completo da subpasta
+    $subfolderPath = $folderPath . '/' . $subfolderName;
+
+    // Prepare a consulta SQL para inserir a nova subpasta
+    $stmt = $conn->prepare("INSERT INTO subfolders (folder_id, name, description, path, created_at) VALUES (?, ?, ?, ?, NOW())");
+    $stmt->bind_param("isss", $folderId, $subfolderName, $subfolderDescription, $subfolderPath);
+
+    if ($stmt->execute()) {
+        $response = array(
+            "status" => "success",
+            "message" => "Subpasta adicionada com sucesso."
+        );
+    } else {
+        $response = array(
+            "status" => "error",
+            "message" => "Erro ao adicionar subpasta: " . $stmt->error
+        );
+    }
+
+    $stmt->close();
+    echo json_encode($response);
 } else {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid request method']);
+    $response = array(
+        "status" => "error",
+        "message" => "Método de solicitação inválido."
+    );
+    echo json_encode($response);
 }
 
 $conn->close();

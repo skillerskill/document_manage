@@ -113,6 +113,7 @@ session_start();
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Nome da Pasta</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Descrição</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Data de Criação</th>
+                            <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
                         </tr>
                         </thead>
                         <tbody id="folderTableBody">
@@ -239,6 +240,11 @@ function loadFolders() {
                         <td class="py-2 px-4 border-b border-gray-200">${folder.name}</td>
                         <td class="py-2 px-4 border-b border-gray-200">${folder.description}</td>
                         <td class="py-2 px-4 border-b border-gray-200">${folder.created_at}</td>
+                        <td class="py-2 px-4 border-b border-gray-200">
+                            <a href="subpastas.php?folder_id=${folder.id}&path=${folder.path}" class="text-blue-500 hover:text-blue-700">
+                                <i class="fas fa-plus-circle"></i> Adicionar Subpasta
+                            </a>
+                        </td>
                     </tr>
                 `;
             });

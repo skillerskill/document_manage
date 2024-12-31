@@ -111,7 +111,7 @@ session_start();
                     </div>
                     <i class="fas fa-sitemap text-4xl text-gray-400"></i>
                 </div>
-                <div class="bg-white p-4 rounded shadow flex items-center justify-between">
+                <div id="pastas" class="bg-white p-4 rounded shadow flex items-center justify-between">
                     <div>
                         <h2 class="text-teal-600">PASTA</h2>
                         <p class="text-2xl font-semibold" id="folderCount">10</p>
@@ -332,6 +332,12 @@ session_start();
         // Filter documents on search button click
         $('#searchButton').on('click', function() {
             loadDocuments();
+        });
+
+        //Clicando no card de pasta para ir na página de pastas
+        $('#pastas').on('click', function(){
+           window.location.href = "pasta.php";
+          // alert("ola mundo");
         });
 
         // Filter documents on department or folder change
