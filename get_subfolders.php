@@ -15,7 +15,7 @@ if ($conn->connect_error) {
 }
 
 // Defina o cabeçalho de resposta como JSON
-header('Content-Type: application/json');
+//header('Content-Type: application/json');
 
 // Query para obter todas as subpastas
 $sql = "SELECT subfolders.id, subfolders.name, subfolders.description, subfolders.folder_id, subfolders.created_at, folders.name as folder_name 

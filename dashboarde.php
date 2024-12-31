@@ -212,10 +212,8 @@ session_start();
                            
                             <div class="col-md-6">
                                 <div class="form-floating mb-3">
-                                    <select class="form-select" id="floatingSelectDept" name="floatingSelectDept" aria-label="State">
-                                    <option value="Recursos Humanos">Recursos Humanos</option>
-                                        <option value="Finanças">Finanças</option>
-                                        <option value="Marketing">Marketing</option>
+                                    <select id="departmentSelect" class="form-select" id="floatingSelectDept" name="floatingSelectDept" aria-label="State">
+                                    
                                     </select>
                                     <label for="floatingSelectDept">Departamento</label>
                                 </div>
@@ -276,81 +274,92 @@ session_start();
 </div>
 
 <script>
-    $(document).ready(function() {
-        // Load documents on page load
-        loadDocuments();
+$(document).ready(function() {
+    // Load departments, folders, and subfolders on page load
+    loadDepartments();
+    loadFolders();
+    loadSubfolders();
 
-        // Set interval to load documents every 2 seconds
-        setInterval(loadDocuments, 2000);
+    // Set interval to load documents every 2 seconds
+    setInterval(loadDocuments, 2000);
 
-        // Add document form submission
-        $('#addDocumentForm').on('submit', function(e) {
-            e.preventDefault();
-            console.log('Form submitted'); // Log to check if form is submitted more than once
-            const formData = new FormData(this);
-            $.ajax({
-                url: 'add_document.php',
-                type: 'POST',
-                data: formData,
-                contentType: false,
-                processData: false,
-                success: function(response) {
-                    $('#addFileModal').modal('hide');
-                    alert(formData.get("floatingName"));
-                    loadDocuments();
-                }
-            });
-        });
-
-        // Add user form submission
-        $('#addUserForm').on('submit', function(e) {
-            e.preventDefault();
-            const formData = {
-                username: $('#username').val(),
-                password: $('#password').val(),
-                role: $('#role').val(),
-                userFunction: $('#userFunction').val(),
-                userDepartment: $('#userDepartment').val()
-            };
-            $.ajax({
-                url: 'add_user.php',
-                type: 'POST',
-                data: formData,
-                success: function(response) {
-                    $('#addUserModal').modal('hide');
-                    alert('Usuário adicionado com sucesso!');
-                    loadDocuments();
-                }
-            });
-        });
-
-        // Confirm logout button click
-        $('#confirmLogoutButton').on('click', function() {
-            window.location.href = 'logout.php'; // Redirect to login page
-        });
-
-        // Filter documents on search button click
-        $('#searchButton').on('click', function() {
-            loadDocuments();
-        });
-
-        //Clicando no card de pasta para ir na página de pastas
-        $('#pastas').on('click', function(){
-           window.location.href = "pasta.php";
-          // alert("ola mundo");
-        });
-
-        // Filter documents on department or folder change
-        $('#filterDepartment, #filterFolder').on('change', function() {
-            loadDocuments();
-        });
-
-        // Update documents on results per page change
-        $('#resultsPerPage').on('change', function() {
-            loadDocuments();
+    // Add document form submission
+    $('#addDocumentForm').on('submit', function(e) {
+        e.preventDefault();
+        console.log('Form submitted'); // Log to check if form is submitted more than once
+        const formData = new FormData(this);
+        $.ajax({
+            url: 'add_document.php',
+            type: 'POST',
+            data: formData,
+            contentType: false,
+            processData: false,
+            success: function(response) {
+                $('#addFileModal').modal('hide');
+                alert(formData.get("floatingName"));
+                loadDocuments();
+            }
         });
     });
 
+    // Load folders
+    function loadFolders() {
+        $.ajax({
+            url: 'get_folders.php',
+            type: 'GET',
+            success: function(response) {
+                const data = JSON.parse(response);
+                let folderOptions = '<option value="" disabled selected>Selecionar Pasta</option>';
+                data.folders.forEach(folder => {
+                    folderOptions += `<option value="${folder.id}">${folder.name}</option>`;
+                });
+                $('#floatingSelectFolder').html(folderOptions);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading folders:', error);
+            }
+        });
+    }
+
+    // Load subfolders
+    function loadSubfolders() {
+        $.ajax({
+            url: 'get_subfolders.php',
+            type: 'GET',
+            success: function(response) {
+                const data = JSON.parse(response);
+                let subfolderOptions = '<option value="" disabled selected>Selecionar Subpasta</option>';
+                data.subfolders.forEach(subfolder => {
+                    subfolderOptions += `<option value="${subfolder.id}">${subfolder.name} (Pasta: ${subfolder.folder_name})</option>`;
+                });
+                $('#floatingSelectSubfolder').html(subfolderOptions);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading subfolders:', error);
+            }
+        });
+    }
+
+    // Load departments
+    function loadDepartments() {
+        $.ajax({
+            url: 'get_departments.php',
+            type: 'GET',
+            success: function(response) {
+                const data = JSON.parse(response);
+                let departmentOptions = '<option value="" disabled selected>Selecionar Departamento</option>';
+                data.departments.forEach(department => {
+                    departmentOptions += `<option value="${department.id}">${department.name}</option>`;
+                });
+                $('#departmentSelect').html(departmentOptions);
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading departments:', error);
+            }
+        });
+    }
+
+    // Load documents
     function loadDocuments() {
         const searchName = $('#searchName').val();
         const filterDepartment = $('#filterDepartment').val();
@@ -442,5 +451,6 @@ session_start();
             });
         }
     }
+});
 </script>
      </body>

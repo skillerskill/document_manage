@@ -28,7 +28,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         $file = $_FILES['floatingFile'];
         $file_name = $file['name'];
         $file_tmp = $file['tmp_name'];
-        $file_path = 'uploads/' . $file_name;
+        $file_path = 'uploads/'.$folder.'/'.$subfolder .'/' . $file_name;
 
         // Mova o arquivo para o diretório de uploads
         if (move_uploaded_file($file_tmp, $file_path)) {

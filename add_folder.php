@@ -26,11 +26,27 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $checkStmt->execute();
     $checkStmt->store_result();
 
+    $query = "SELECT * FROM departments WHERE id = ?";
+$stmt = $conn->prepare($query);
+$stmt->bind_param("i", $departmentId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $dados = $result->fetch_assoc();
+} else {
+    // Trate o caso em que nenhum departamento foi encontrado
+    $dados = null;
+    echo "Nenhum departamento encontrado com o ID fornecido.";
+}
+
+
+
     if ($checkStmt->num_rows > 0) {
         echo json_encode(['status' => 'error', 'message' => 'Folder already exists. Please choose a different name.']);
     } else {
         // Crie o diretório de upload
-        $uploadDir = "uploads/department_$departmentId/$folderName";
+        $uploadDir = "uploads/".$dados['name']."/$folderName";
         if (!file_exists($uploadDir)) {
             mkdir($uploadDir, 0777, true);
         }

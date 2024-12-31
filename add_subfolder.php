@@ -34,6 +34,25 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     // Construa o caminho completo da subpasta
     $subfolderPath = $folderPath . '/' . $subfolderName;
 
+    // Crie a subpasta no sistema de arquivos
+    if (!file_exists($subfolderPath)) {
+        if (!mkdir($subfolderPath, 0777, true)) {
+            $response = array(
+                "status" => "error",
+                "message" => "Erro ao criar subpasta no sistema de arquivos."
+            );
+            echo json_encode($response);
+            exit();
+        }
+    } else {
+        $response = array(
+            "status" => "error",
+            "message" => "A subpasta já existe no sistema de arquivos."
+        );
+        echo json_encode($response);
+        exit();
+    }
+
     // Prepare a consulta SQL para inserir a nova subpasta
     $stmt = $conn->prepare("INSERT INTO subfolders (folder_id, name, description, path, created_at) VALUES (?, ?, ?, ?, NOW())");
     $stmt->bind_param("isss", $folderId, $subfolderName, $subfolderDescription, $subfolderPath);
@@ -44,6 +63,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             "message" => "Subpasta adicionada com sucesso."
         );
     } else {
+        // Remova a subpasta do sistema de arquivos se a inserção no banco de dados falhar
+        rmdir($subfolderPath);
         $response = array(
             "status" => "error",
             "message" => "Erro ao adicionar subpasta: " . $stmt->error
