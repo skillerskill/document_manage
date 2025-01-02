@@ -1,3 +1,4 @@
+
 <?php
 session_start(); // Certifique-se de iniciar a sessão
 
@@ -64,8 +65,8 @@ $sql = "SELECT COUNT(*) AS departmentCount FROM departments";
 $departmentResult = $conn->query($sql);
 $departmentCount = $departmentResult->fetch_assoc()['departmentCount'];
 
-// Contagem de pastas
-$sql = "SELECT COUNT(DISTINCT folder) AS folderCount FROM documents";
+// Contagem de pastas usando a tabela folders
+$sql = "SELECT COUNT(*) AS folderCount FROM folders";
 $folderResult = $conn->query($sql);
 $folderCount = $folderResult->fetch_assoc()['folderCount'];
 

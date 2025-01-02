@@ -111,7 +111,7 @@ session_start();
                     </div>
                     <i class="fas fa-sitemap text-4xl text-gray-400"></i>
                 </div>
-                <div id="pastas" class="bg-white p-4 rounded shadow flex items-center justify-between">
+                <div id="pasta" class="bg-white p-4 rounded shadow flex items-center justify-between">
                     <div>
                         <h2 class="text-teal-600">PASTA</h2>
                         <p class="text-2xl font-semibold" id="folderCount">10</p>
@@ -274,183 +274,188 @@ session_start();
 </div>
 
 <script>
-$(document).ready(function() {
-    // Load departments, folders, and subfolders on page load
-    loadDepartments();
-    loadFolders();
-    loadSubfolders();
-
-    // Set interval to load documents every 2 seconds
-    setInterval(loadDocuments, 2000);
-
-    // Add document form submission
-    $('#addDocumentForm').on('submit', function(e) {
-        e.preventDefault();
-        console.log('Form submitted'); // Log to check if form is submitted more than once
-        const formData = new FormData(this);
-        $.ajax({
-            url: 'add_document.php',
-            type: 'POST',
-            data: formData,
-            contentType: false,
-            processData: false,
-            success: function(response) {
-                $('#addFileModal').modal('hide');
-                alert(formData.get("floatingName"));
-                loadDocuments();
-            }
-        });
-    });
-
-    // Load folders
-    function loadFolders() {
-        $.ajax({
-            url: 'get_folders.php',
-            type: 'GET',
-            success: function(response) {
-                const data = JSON.parse(response);
-                let folderOptions = '<option value="" disabled selected>Selecionar Pasta</option>';
-                data.folders.forEach(folder => {
-                    folderOptions += `<option value="${folder.id}">${folder.name}</option>`;
-                });
-                $('#floatingSelectFolder').html(folderOptions);
-            },
-            error: function(xhr, status, error) {
-                console.error('Error loading folders:', error);
-            }
-        });
-    }
-
-    // Load subfolders
-    function loadSubfolders() {
-        $.ajax({
-            url: 'get_subfolders.php',
-            type: 'GET',
-            success: function(response) {
-                const data = JSON.parse(response);
-                let subfolderOptions = '<option value="" disabled selected>Selecionar Subpasta</option>';
-                data.subfolders.forEach(subfolder => {
-                    subfolderOptions += `<option value="${subfolder.id}">${subfolder.name} (Pasta: ${subfolder.folder_name})</option>`;
-                });
-                $('#floatingSelectSubfolder').html(subfolderOptions);
-            },
-            error: function(xhr, status, error) {
-                console.error('Error loading subfolders:', error);
-            }
-        });
-    }
-
-    // Load departments
-    function loadDepartments() {
-        $.ajax({
-            url: 'get_departments.php',
-            type: 'GET',
-            success: function(response) {
-                const data = JSON.parse(response);
-                let departmentOptions = '<option value="" disabled selected>Selecionar Departamento</option>';
-                data.departments.forEach(department => {
-                    departmentOptions += `<option value="${department.id}">${department.name}</option>`;
-                });
-                $('#departmentSelect').html(departmentOptions);
-            },
-            error: function(xhr, status, error) {
-                console.error('Error loading departments:', error);
-            }
-        });
-    }
-
-    // Load documents
-    function loadDocuments() {
-        const searchName = $('#searchName').val();
-        const filterDepartment = $('#filterDepartment').val();
-        const filterFolder = $('#filterFolder').val();
-        const filterSubfolder = $('#filterSubfolder').val();
-        const resultsPerPage = $('#resultsPerPage').val();
-
-        $.ajax({
-            url: 'get_documents.php',
-            type: 'GET',
-            data: {
-                searchName: searchName,
-                filterDepartment: filterDepartment,
-                filterFolder: filterFolder,
-                filterSubfolder: filterSubfolder,
-                resultsPerPage: resultsPerPage
-            },
-            success: function(response) {
-                console.log(response); // Log the response for debugging
-                try {
-                    const data = JSON.parse(response);
-                    console.log(data); // Log the parsed data for debugging
-                    const documents = data.documents;
-                    const documentCount = data.documentCount;
-                    const departmentCount = data.departmentCount;
-                    const folderCount = data.folderCount;
-                    const subfolderCount = data.subfolderCount;
-                    const userCount = data.userCount;
-                    const userRole = data.userRole;
-                    const userName = data.userName;
-                    if (userRole === 'admin') {
-                        $('#addUserButton').show();
+ function deleteDocument(documentId) {
+            if (confirm('Are you sure you want to delete this document?')) {
+                $.ajax({
+                    url: 'delete_document.php',
+                    type: 'POST',
+                    data: { document_id: documentId },
+                    success: function(response) {
+                        const data = JSON.parse(response);
+                        if (data.status === 'success') {
+                            alert('Document deleted successfully');
+                            loadDocuments();
+                        } else {
+                            alert('Failed to delete document: ' + data.message);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error deleting document:', error);
                     }
-                    let documentRows = '';
-                    documents.forEach(document => {
-                        documentRows += `
-                            <tr>
-                                <td>${document.name}</td>
-                                <td>${document.description}</td>
-                                <td>${document.upload_time}</td>
-                                <td>${document.user_id}</td>
-                                <td>${document.department}</td>
-                                <td>
-                                    <a href="${document.file_path}" download>
-                                        <i class="fas fa-download text-primary cursor-pointer"></i>
-                                    </a>
-                                    ${ userRole === 'admin' ? `
-                                    <i class="fas fa-edit text-success cursor-pointer" onclick="editDocument(${document.id})"></i>
-                                    <i class="fas fa-trash text-danger cursor-pointer" onclick="deleteDocument(${document.id})"></i>
-                                    ` : ''}
-                                </td>
-                            </tr>
-                        `;
-                    });
-                    $('#documentTableBody').html(documentRows);
-                    $('#documentCount').text(documentCount); // Atualiza a contagem de documentos no card
-                    $('#departmentCount').text(departmentCount); // Atualiza a contagem de departamentos no card
-                    $('#folderCount').text(folderCount); // Atualiza a contagem de pastas no card
-                    $('#subfolderCount').text(subfolderCount); // Atualiza a contagem de subpastas no card
-                    $('#userCount').text(userCount); // Atualiza a contagem de usuários no card
-                } catch (e) {
-                    console.error('Error parsing JSON:', e);
-                }
-            },
-            error: function(xhr, status, error) {
-                console.error('Error loading documents:', error);
+                });
             }
-        });
-    }
-
-    function deleteDocument(documentId) {
-        if (confirm('Are you sure you want to delete this document?')) {
-            $.ajax({
-                url: 'delete_document.php',
-                type: 'POST',
-                data: { document_id: documentId },
-                success: function(response) {
-                    const data = JSON.parse(response);
-                    if (data.status === 'success') {
-                        alert('Document deleted successfully');
-                        loadDocuments();
-                    } else {
-                        alert('Failed to delete document: ' + data.message);
-                    }
-                },
-                error: function(xhr, status, error) {
-                    console.error('Error deleting document:', error);
-                }
-            });
         }
-    }
-});
+
+        $(document).ready(function() {
+            // Load departments, folders, and subfolders on page load
+            loadDepartments();
+            loadFolders();
+            loadSubfolders();
+
+            // Set interval to load documents every 2 seconds
+            setInterval(loadDocuments, 500);
+
+            $("#pasta").on("click", function() {
+                window.location.href = "pasta.php";
+            });
+
+            // Add document form submission
+            $('#addDocumentForm').on('submit', function(e) {
+                e.preventDefault();
+                console.log('Form submitted'); // Log to check if form is submitted more than once
+                const formData = new FormData(this);
+                const folder = formData.get('floatingSelectFolder');
+                $.ajax({
+                    url: 'add_document.php',
+                    type: 'POST',
+                    data: formData,
+                    contentType: false,
+                    processData: false,
+                    success: function(response) {
+                        $('#addFileModal').modal('hide');
+                        alert(folder);
+                        loadDocuments();
+                    }
+                });
+            });
+
+            // Load folders
+            function loadFolders() {
+                $.ajax({
+                    url: 'get_folders.php',
+                    type: 'GET',
+                    success: function(response) {
+                        const data = JSON.parse(response);
+                        let folderOptions = '<option value="" disabled selected>Selecionar Pasta</option>';
+                        data.folders.forEach(folder => {
+                            folderOptions += `<option value="${folder.path}">${folder.name}</option>`;
+                        });
+                        $('#floatingSelectFolder').html(folderOptions);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading folders:', error);
+                    }
+                });
+            }
+
+            // Load subfolders
+            function loadSubfolders() {
+                $.ajax({
+                    url: 'get_subfolders.php',
+                    type: 'GET',
+                    success: function(response) {
+                        const data = JSON.parse(response);
+                        let subfolderOptions = '<option value="" disabled selected>Selecionar Subpasta</option>';
+                        data.subfolders.forEach(subfolder => {
+                            subfolderOptions += `<option value="${subfolder.name}">${subfolder.name} (Pasta: ${subfolder.folder_name})</option>`;
+                        });
+                        $('#floatingSelectSubfolder').html(subfolderOptions);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading subfolders:', error);
+                    }
+                });
+            }
+
+            // Load departments
+            function loadDepartments() {
+                $.ajax({
+                    url: 'get_departments.php',
+                    type: 'GET',
+                    success: function(response) {
+                        const data = JSON.parse(response);
+                        let departmentOptions = '<option value="" disabled selected>Selecionar Departamento</option>';
+                        data.departments.forEach(department => {
+                            departmentOptions += `<option value="${department.id}">${department.name}</option>`;
+                        });
+                        $('#departmentSelect').html(departmentOptions);
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading departments:', error);
+                    }
+                });
+            }
+
+            // Load documents
+            function loadDocuments() {
+                const searchName = $('#searchName').val();
+                const filterDepartment = $('#filterDepartment').val();
+                const filterFolder = $('#filterFolder').val();
+                const filterSubfolder = $('#filterSubfolder').val();
+                const resultsPerPage = $('#resultsPerPage').val();
+
+                $.ajax({
+                    url: 'get_documents.php',
+                    type: 'GET',
+                    data: {
+                        searchName: searchName,
+                        filterDepartment: filterDepartment,
+                        filterFolder: filterFolder,
+                        filterSubfolder: filterSubfolder,
+                        resultsPerPage: resultsPerPage
+                    },
+                    success: function(response) {
+                        console.log(response); // Log the response for debugging
+                        try {
+                            const data = JSON.parse(response);
+                            console.log(data); // Log the parsed data for debugging
+                            const documents = data.documents;
+                            const documentCount = data.documentCount;
+                            const departmentCount = data.departmentCount;
+                            const folderCount = data.folderCount;
+                            const subfolderCount = data.subfolderCount;
+                            const userCount = data.userCount;
+                            const userRole = data.userRole;
+                            const userName = data.userName;
+                            if (userRole === 'admin') {
+                                $('#addUserButton').show();
+                            }
+                            let documentRows = '';
+                            documents.forEach(document => {
+                                documentRows += `
+                                    <tr>
+                                        <td>${document.name}</td>
+                                        <td>${document.description}</td>
+                                        <td>${document.upload_time}</td>
+                                        <td>${document.user_id}</td>
+                                        <td>${document.department}</td>
+                                        <td>
+                                            <a href="${document.file_path}" download>
+                                                <i class="fas fa-download text-primary cursor-pointer"></i>
+                                            </a>
+                                            ${ userRole === 'admin' ? `
+                                            <i class="fas fa-edit text-success cursor-pointer" onclick="editDocument(${document.id})"></i>
+                                            <i class="fas fa-trash text-danger cursor-pointer" onclick="deleteDocument(${document.id})"></i>
+                                            ` : ''}
+                                        </td>
+                                    </tr>
+                                `;
+                            });
+                            $('#documentTableBody').html(documentRows);
+                            $('#documentCount').text(documentCount); // Atualiza a contagem de documentos no card
+                            $('#departmentCount').text(departmentCount); // Atualiza a contagem de departamentos no card
+                            $('#folderCount').text(folderCount); // Atualiza a contagem de pastas no card
+                            $('#subfolderCount').text(subfolderCount); // Atualiza a contagem de subpastas no card
+                            $('#userCount').text(userCount); // Atualiza a contagem de usuários no card
+                        } catch (e) {
+                            console.error('Error parsing JSON:', e);
+                        }
+                    },
+                    error: function(xhr, status, error) {
+                        console.error('Error loading documents:', error);
+                    }
+                });
+            }
+        });
 </script>
      </body>

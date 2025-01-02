@@ -42,7 +42,7 @@ $path = $_GET["path"];
             </div>
             <div class="mt-6">
                 <h3 class="text-sm font-semibold text-blue-400">ADDONS</h3>
-                <a class="flex items-center py-2 mt-2 text-blue-300" href="#">
+                <a class="flex items-center py-2 mt-2 text-blue-300" href="pasta.php">
                     <i class="fas fa-folder mr-3"></i>
                     Pastas
                 </a>

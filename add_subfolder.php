@@ -54,8 +54,8 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     }
 
     // Prepare a consulta SQL para inserir a nova subpasta
-    $stmt = $conn->prepare("INSERT INTO subfolders (folder_id, name, description, path, created_at) VALUES (?, ?, ?, ?, NOW())");
-    $stmt->bind_param("isss", $folderId, $subfolderName, $subfolderDescription, $subfolderPath);
+    $stmt = $conn->prepare("INSERT INTO subfolders (name, description, folder_id, created_at, path) VALUES (?, ?, ?, NOW(), ?)");
+    $stmt->bind_param("ssis", $subfolderName, $subfolderDescription, $folderId, $subfolderPath);
 
     if ($stmt->execute()) {
         $response = array(

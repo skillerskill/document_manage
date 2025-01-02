@@ -20,15 +20,18 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $description = isset($_POST['floatingDescription']) ? $_POST['floatingDescription'] : '';
     $user_id = isset($_SESSION['user_id']) ? $_SESSION['user_id'] : 1; // Substitua pelo ID do usuário logado
     $department_id = isset($_POST['floatingDepartment']) ? $_POST['floatingDepartment'] : 1; // Substitua pelo ID do departamento selecionado
-    $folder = isset($_POST['floatingFolder']) ? $_POST['floatingFolder'] : '';
-    $subfolder = isset($_POST['floatingSubfolder']) ? $_POST['floatingSubfolder'] : '';
+    $folder = isset($_POST['floatingSelectFolder']) ? $_POST['floatingSelectFolder'] : '';
+    $subfolder = isset($_POST['floatingSelectSubfolder']) ? $_POST['floatingSelectSubfolder'] : '';
 
     // Verifique se um arquivo foi enviado
     if (isset($_FILES['floatingFile']) && $_FILES['floatingFile']['error'] == 0) {
         $file = $_FILES['floatingFile'];
         $file_name = $file['name'];
         $file_tmp = $file['tmp_name'];
-        $file_path = 'uploads/'.$folder.'/'.$subfolder .'/' . $file_name;
+        $file_path = $folder.'/'.$subfolder. '/' . $file_name;
+
+        // Verifique se os diretórios existem, caso contrário, crie-os
+        
 
         // Mova o arquivo para o diretório de uploads
         if (move_uploaded_file($file_tmp, $file_path)) {
@@ -39,7 +42,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             if ($stmt->execute()) {
                 echo json_encode(['status' => 'success', 'message' => 'Document added successfully']);
             } else {
-                echo json_encode(['status' => 'error', 'message' => 'Failed to add document']);
+                echo json_encode(['status' => 'error', 'message' => 'Failed to add document: ' . $stmt->error]);
             }
 
             $stmt->close();
