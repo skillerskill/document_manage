@@ -7,38 +7,47 @@ $username = "root";
 $password = "";
 $dbname = "document_manage";
 
-// Create connection
 $conn = new mysqli($servername, $username, $password, $dbname);
 
-// Check connection
+// Verifica a conexão
 if ($conn->connect_error) {
     die("Connection failed: " . $conn->connect_error);
 }
 
-// Construa a consulta SQL para obter as pastas e os departamentos correspondentes
-$sql = "SELECT folders.id, folders.name, folders.description, folders.created_at, folders.path, departments.name AS department_name 
-        FROM folders 
-        JOIN departments ON folders.department_id = departments.id";
+// Verifica se há um filtro de departamento
+$departmentId = isset($_GET['departmentId']) ? $_GET['departmentId'] : '';
 
-$result = $conn->query($sql);
+// Consulta SQL para buscar as pastas
+$sql = "SELECT folders.id, folders.name, folders.description, departments.name as department_name, COUNT(subfolders.id) as subfolders_count
+        FROM folders
+        LEFT JOIN departments ON folders.department_id = departments.id
+        LEFT JOIN subfolders ON subfolders.folder_id = folders.id";
 
-$folders = array();
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $folders[] = $row;
-    }
-} else {
-    // Caso não haja resultados, você pode definir uma mensagem ou um array vazio
-    $folders = array();
+if ($departmentId) {
+    $sql .= " WHERE folders.department_id = ?";
 }
 
-$response = array(
-    "folders" => $folders
-);
+$sql .= " GROUP BY folders.id";
 
-// Defina o cabeçalho Content-Type para application/json
-//header('Content-Type: application/json');
-echo json_encode($response);
+$stmt = $conn->prepare($sql);
 
+if ($departmentId) {
+    $stmt->bind_param("i", $departmentId);
+}
+
+$stmt->execute();
+$result = $stmt->get_result();
+
+$folders = [];
+
+while ($row = $result->fetch_assoc()) {
+    $folders[] = $row;
+}
+
+$stmt->close();
 $conn->close();
+
+// Retorna os dados em formato JSON
+//header('Content-Type: application/json');
+echo json_encode(['folders' => $folders]);
 ?>

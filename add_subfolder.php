@@ -17,7 +17,6 @@ if ($conn->connect_error) {
 // Verifique se os dados foram enviados via POST
 if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $folderId = $_POST['folderId'];
-    $folderPath = $_POST['folderPath'];
     $subfolderName = $_POST['subfolderName'];
     $subfolderDescription = $_POST['subfolderDescription'];
 
@@ -30,6 +29,15 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
         echo json_encode($response);
         exit();
     }
+
+    // Obtenha o caminho da pasta principal
+    $stmt = $conn->prepare("SELECT path FROM folders WHERE id = ?");
+    $stmt->bind_param("i", $folderId);
+    $stmt->execute();
+    $result = $stmt->get_result();
+    $folder = $result->fetch_assoc();
+    $folderPath = $folder['path'];
+    $stmt->close();
 
     // Construa o caminho completo da subpasta
     $subfolderPath = $folderPath . '/' . $subfolderName;

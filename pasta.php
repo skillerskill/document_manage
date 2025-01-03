@@ -89,7 +89,7 @@ session_start();
                     <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">7</span>
                 </div>
                 <div class="ml-4 flex items-center">
-                    <span class="text-gray-600" id="userName"><?php echo $_SESSION["username"]; ?></span>
+                    <span class="text-gray-600 text-sm" id="userName"><?php echo $_SESSION["username"]; ?></span>
                     <img alt="User avatar" class="ml-2 rounded-full" height="40" src="https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg" width="40"/>
                 </div>
             </div>
@@ -103,24 +103,33 @@ session_start();
                     Adicionar Pasta
                 </button>
             </div>
-            <div class="bg-white p-4 rounded shadow mb-6">
-                <h2 class="text-gray-600 mb-4">Pastas Existentes</h2>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white border border-gray-200">
-                        <thead>
-                        <tr>
-                            <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Departamento</th>
-                            <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Nome da Pasta</th>
-                            <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Descrição</th>
-                            <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Data de Criação</th>
-                            <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
-                        </tr>
-                        </thead>
-                        <tbody id="folderTableBody">
-                        <!-- Folder rows will be appended here by JavaScript -->
-                        </tbody>
-                    </table>
-                </div>
+            <nav class="flex mb-6" aria-label="Breadcrumb">
+                <ol class="inline-flex items-center space-x-1 md:space-x-3">
+                    <li class="inline-flex items-center">
+                        <a href="dashboarde.php" class="text-gray-700 hover:text-gray-900 inline-flex items-center">
+                            <i class="fas fa-home mr-2"></i>
+                            Início
+                        </a>
+                    </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                            <a href="pasta.php" class="text-gray-700 hover:text-gray-900">
+                                Pastas
+                            </a>
+                        </div>
+                    </li>
+                </ol>
+            </nav>
+            <div class="mb-6">
+                <label for="departmentFilter" class="block text-gray-700">Filtrar por Departamento:</label>
+                <select id="departmentFilter" class="form-select mt-1 block w-full">
+                    <option value="">Todos os Departamentos</option>
+                    <!-- Department options will be loaded here by JavaScript -->
+                </select>
+            </div>
+            <div id="folderCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Folder cards will be appended here by JavaScript -->
             </div>
         </main>
     </div>
@@ -206,6 +215,11 @@ session_start();
             }
         });
     });
+
+    // Filter folders by department
+    $('#departmentFilter').on('change', function() {
+        loadFolders($(this).val());
+    });
 });
 
 function loadDepartments() {
@@ -214,11 +228,12 @@ function loadDepartments() {
         type: 'GET',
         success: function(response) {
             const data = JSON.parse(response);
-            let departmentOptions = '<option value="" disabled selected>Selecionar Departamento</option>';
+            let departmentOptions = '<option value="">Todos os Departamentos</option>';
             data.departments.forEach(department => {
                 departmentOptions += `<option value="${department.id}">${department.name}</option>`;
             });
             $('#departmentSelect').html(departmentOptions);
+            $('#departmentFilter').html(departmentOptions);
         },
         error: function(xhr, status, error) {
             console.error('Error loading departments:', error);
@@ -226,29 +241,27 @@ function loadDepartments() {
     });
 }
 
-function loadFolders() {
+function loadFolders(departmentId = '') {
     $.ajax({
         url: 'get_folders.php',
         type: 'GET',
+        data: { departmentId: departmentId },
         success: function(response) {
             const data = JSON.parse(response);
-            let folderRows = '';
+            let folderCards = '';
             data.folders.forEach(folder => {
-                folderRows += `
-                    <tr>
-                        <td class="py-2 px-4 border-b border-gray-200">${folder.department_name}</td>
-                        <td class="py-2 px-4 border-b border-gray-200">${folder.name}</td>
-                        <td class="py-2 px-4 border-b border-gray-200">${folder.description}</td>
-                        <td class="py-2 px-4 border-b border-gray-200">${folder.created_at}</td>
-                        <td class="py-2 px-4 border-b border-gray-200">
-                            <a href="subpastas.php?folder_id=${folder.id}&path=${folder.path}" class="text-blue-500 hover:text-blue-700">
-                                <i class="fas fa-plus-circle"></i> Adicionar Subpasta
-                            </a>
-                        </td>
-                    </tr>
+                folderCards += `
+                    <a href="subpastas.php?folder_id=${folder.id}" class="bg-white p-4 rounded-lg shadow-md flex items-center transition-shadow duration-300 hover:shadow-lg">
+                        <i class="fas fa-folder fa-3x text-gray-500 mr-4"></i>
+                        <div>
+                            <h2 class="text-lg font-bold">${folder.name}</h2>
+                            <p class="text-gray-600 text-sm">${folder.subfolders_count} subpastas</p>
+                            <p class="text-gray-500 text-sm">${folder.department_name}</p>
+                        </div>
+                    </a>
                 `;
             });
-            $('#folderTableBody').html(folderRows);
+            $('#folderCards').html(folderCards);
         },
         error: function(xhr, status, error) {
             console.error('Error loading folders:', error);

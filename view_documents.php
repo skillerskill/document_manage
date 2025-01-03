@@ -5,7 +5,7 @@ session_start();
 <head>
     <meta charset="utf-8"/>
     <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <title>Manage Subfolders</title>
+    <title>View Documents</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css" rel="stylesheet"/>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
@@ -64,9 +64,6 @@ session_start();
                 </a>
             </div>
         </nav>
-        <div class="p-4">
-            <button class="w-full bg-green-500 text-white py-2 rounded" data-bs-toggle="modal" data-bs-target="#addSubfolderModal">Adicionar Subpasta</button>
-        </div>
     </div>
 
     <!-- Main Content -->
@@ -97,10 +94,10 @@ session_start();
         <!-- Main content -->
         <main class="flex-1 p-6">
             <div class="flex justify-between items-center mb-6">
-                <h1 class="text-2xl font-semibold">Gerenciar Subpastas</h1>
-                <button class="bg-blue-900 text-white px-4 py-2 rounded" data-bs-toggle="modal" data-bs-target="#addSubfolderModal">
-                    <i class="fas fa-folder-plus mr-2"></i>
-                    Adicionar Subpasta
+                <h1 class="text-2xl font-semibold">Documentos</h1>
+                <button class="bg-blue-900 text-white px-4 py-2 rounded" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
+                    <i class="fas fa-file-upload mr-2"></i>
+                    Adicionar Documento
                 </button>
             </div>
             <nav class="flex mb-6" aria-label="Breadcrumb">
@@ -114,7 +111,7 @@ session_start();
                     <li>
                         <div class="flex items-center">
                             <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                            <a href="pasta.php" class="text-gray-700 hover:text-gray-900">
+                            <a href="folders.php" class="text-gray-700 hover:text-gray-900">
                                 Pastas
                             </a>
                         </div>
@@ -127,50 +124,50 @@ session_start();
                             </a>
                         </div>
                     </li>
+                    <li>
+                        <div class="flex items-center">
+                            <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
+                            <span id="breadcrumbSubfolderName">Subpasta</span>
+                        </div>
+                    </li>
                 </ol>
             </nav>
-            <div id="subfolderCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Subfolder cards will be appended here by JavaScript -->
+            <div id="documentCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+                <!-- Document cards will be appended here by JavaScript -->
             </div>
         </main>
     </div>
 </div>
 
 <!-- Modal -->
-<div class="modal fade" id="addSubfolderModal" tabindex="-1" aria-labelledby="addSubfolderModalLabel" aria-hidden="true">
+<div class="modal fade" id="addDocumentModal" tabindex="-1" aria-labelledby="addDocumentModalLabel" aria-hidden="true">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content">
             <div class="modal-header">
-                <h5 class="modal-title" id="addSubfolderModalLabel">Adicionar Nova Subpasta</h5>
+                <h5 class="modal-title" id="addDocumentModalLabel">Adicionar Novo Documento</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div class="modal-body">
                 <div class="card">
                     <div class="card-body">
-                        <h5 class="card-title">Adicionar Nova Subpasta</h5>
-                        <form class="row g-3" id="addSubfolderForm">
-                            <input type="hidden" id="folderId" name="folderId" />
-                            <div class="col-md-12">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="folderName" name="folderName" placeholder="Nome da Pasta" readonly/>
-                                    <label for="folderName">Nome da Pasta</label>
-                                </div>
+                        <h5 class="card-title">Adicionar Novo Documento</h5>
+                        <form id="addDocumentForm" enctype="multipart/form-data">
+                            <input type="hidden" id="subfolderId" name="subfolderId" value="<?php echo $_GET['subfolder_id']; ?>" />
+                            <div class="mb-3">
+                                <label for="floatingName" class="form-label">Nome do Documento</label>
+                                <input type="text" class="form-control" id="floatingName" name="floatingName" placeholder="Nome do Documento" required>
                             </div>
-                            <div class="col-md-6">
-                                <div class="form-floating mb-3">
-                                    <input type="text" class="form-control" id="subfolderName" name="subfolderName" placeholder="Nome da Subpasta" required/>
-                                    <label for="subfolderName">Nome da Subpasta</label>
-                                </div>
+                            <div class="mb-3">
+                                <label for="floatingDescription" class="form-label">Descrição</label>
+                                <textarea class="form-control" id="floatingDescription" name="floatingDescription" placeholder="Descrição" style="height: 100px"></textarea>
                             </div>
-                            <div class="col-md-12">
-                                <div class="form-floating">
-                                    <textarea class="form-control" placeholder="Descrição" id="subfolderDescription" name="subfolderDescription" style="height: 100px"></textarea>
-                                    <label for="subfolderDescription">Descrição</label>
-                                </div>
+                            <div class="mb-3">
+                                <label for="floatingFile" class="form-label">Arquivo</label>
+                                <input type="file" class="form-control" id="floatingFile" name="floatingFile" required>
                             </div>
                             <div class="modal-footer">
                                 <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                <button type="submit" class="btn btn-primary">Adicionar Subpasta</button>
+                                <button type="submit" class="btn btn-primary">Adicionar Documento</button>
                             </div>
                         </form>
                         <div id="message" class="mt-4"></div>
@@ -183,99 +180,95 @@ session_start();
 
 <script>
    $(document).ready(function() {
-    // Get folder ID from URL
+    // Get subfolder ID from URL
     const urlParams = new URLSearchParams(window.location.search);
-    const folderId = urlParams.get('folder_id');
+    const subfolderId = urlParams.get('subfolder_id');
 
-    // Load subfolders for the specific folder on page load
-    loadSubfolders(folderId);
+    // Load documents for the specific subfolder on page load
+    loadDocuments(subfolderId);
 
-    // Load folder name for the modal and breadcrumb
-    loadFolderName(folderId);
+    // Load subfolder name for the breadcrumb
+    loadSubfolderName(subfolderId);
 
-    // Add subfolder form submission
-    $('#addSubfolderForm').on('submit', function(e) {
+    // Add document form submission
+    $('#addDocumentForm').on('submit', function(e) {
         e.preventDefault();
-        const formData = {
-            folderId: $('#folderId').val(),
-            subfolderName: $('#subfolderName').val(),
-            subfolderDescription: $('#subfolderDescription').val()
-        };
+        const formData = new FormData(this);
         $.ajax({
-            url: 'add_subfolder.php',
+            url: 'add_document.php',
             type: 'POST',
             data: formData,
+            processData: false,
+            contentType: false,
             success: function(response) {
                 const data = JSON.parse(response);
                 const messageDiv = $('#message');
                 if (data.status === 'success') {
-                    $('#addSubfolderModal').modal('hide');
-                    alert('Subpasta adicionada com sucesso!');
-                    loadSubfolders(folderId);
+                    $('#addDocumentModal').modal('hide');
+                    alert('Documento adicionado com sucesso!');
+                    loadDocuments(subfolderId);
                 } else {
                     messageDiv.html(`<div class="alert alert-danger">${data.message}</div>`);
                 }
             },
             error: function(xhr, status, error) {
-                console.error('Error adding subfolder:', error);
+                console.error('Error adding document:', error);
             }
         });
     });
 });
 
-function loadSubfolders(folderId) {
+function loadDocuments(subfolderId) {
     $.ajax({
-        url: 'get_subfolders.php',
+        url: 'get_documents.php',
         type: 'GET',
-        data: { folderId: folderId },
+        data: { subfolderId: subfolderId },
         success: function(response) {
             const data = JSON.parse(response);
-            let subfolderCards = '';
-            if (data.subfolders.length > 0) {
-                data.subfolders.forEach(subfolder => {
-                    subfolderCards += `
-                        <a href="view_documents.php?subfolder_id=${subfolder.id}&folder_id=${folderId}" class="bg-white p-4 rounded-lg shadow-md flex items-center transition-shadow duration-300 hover:shadow-lg">
-                            <i class="fas fa-folder-open fa-3x text-gray-500 mr-4"></i>
+            let documentCards = '';
+            if (data.documents.length > 0) {
+                data.documents.forEach(document => {
+                    documentCards += `
+                        <div class="bg-white p-4 rounded-lg shadow-md flex items-center transition-shadow duration-300 hover:shadow-lg">
+                            <i class="fas fa-file-alt fa-3x text-gray-500 mr-4"></i>
                             <div>
-                                <h2 class="text-lg font-bold">${subfolder.name}</h2>
-                                <p class="text-gray-600 text-sm">${subfolder.description}</p>
-                                <p class="text-gray-500 text-sm">${subfolder.document_count} documentos</p>
+                                <h2 class="text-lg font-bold">${document.name}</h2>
+                                <p class="text-gray-600 text-sm">${document.description}</p>
+                                <a href="${document.file_path}" class="text-blue-500 hover:underline" target="_blank">Visualizar</a>
                             </div>
-                        </a>
+                        </div>
                     `;
                 });
             } else {
-                subfolderCards = `
+                documentCards = `
                     <div class="bg-white p-4 rounded-lg shadow-md flex items-center justify-center">
-                        <p class="text-gray-600 text-lg text-center">Nenhuma subpasta encontrada nesta pasta.</p>
+                        <p class="text-gray-600 text-lg text-center">Nenhum documento encontrado nesta subpasta.</p>
                     </div>
                 `;
             }
-            $('#subfolderCards').html(subfolderCards);
+            $('#documentCards').html(documentCards);
         },
         error: function(xhr, status, error) {
-            console.error('Error loading subfolders:', error);
+            console.error('Error loading documents:', error);
         }
     });
 }
 
-function loadFolderName(folderId) {
+function loadSubfolderName(subfolderId) {
     $.ajax({
-        url: 'get_folder_name.php',
+        url: 'get_subfolder_name.php',
         type: 'GET',
-        data: { folderId: folderId },
+        data: { subfolderId: subfolderId },
         success: function(response) {
             const data = JSON.parse(response);
             if (data.status === 'success') {
-                $('#folderName').val(data.folder_name);
-                $('#folderId').val(folderId);
-                $('#breadcrumbFolderName').text(data.folder_name);
+                $('#breadcrumbSubfolderName').text(data.subfolder_name);
             } else {
-                console.error('Error loading folder name:', data.message);
+                console.error('Error loading subfolder name:', data.message);
             }
         },
         error: function(xhr, status, error) {
-            console.error('Error loading folder name:', error);
+            console.error('Error loading subfolder name:', error);
         }
     });
 }
