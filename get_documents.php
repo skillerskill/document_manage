@@ -1,4 +1,3 @@
-
 <?php
 session_start(); // Certifique-se de iniciar a sessão
 
@@ -23,17 +22,16 @@ $filterSubfolder = isset($_GET['filterSubfolder']) ? $_GET['filterSubfolder'] : 
 $resultsPerPage = isset($_GET['resultsPerPage']) ? intval($_GET['resultsPerPage']) : 10;
 
 // Construa a consulta SQL com os filtros
-$sql = "SELECT documents.id, documents.name, documents.description, documents.upload_time, users.username AS user_id, departments.name AS department, documents.file_path 
+$sql = "SELECT documents.id, documents.name, documents.description, documents.upload_time, users.username AS uploaded_by, users.department AS department, documents.file_path 
         FROM documents 
         JOIN users ON documents.user_id = users.id 
-        JOIN departments ON documents.department_id = departments.id 
         WHERE 1=1";
 
 if ($searchName != '') {
     $sql .= " AND documents.name LIKE '%" . $conn->real_escape_string($searchName) . "%'";
 }
 if ($filterDepartment != '') {
-    $sql .= " AND departments.name = '" . $conn->real_escape_string($filterDepartment) . "'";
+    $sql .= " AND users.department = '" . $conn->real_escape_string($filterDepartment) . "'";
 }
 if ($filterFolder != '') {
     $sql .= " AND documents.folder = '" . $conn->real_escape_string($filterFolder) . "'";
@@ -45,6 +43,10 @@ if ($filterSubfolder != '') {
 $sql .= " LIMIT " . $resultsPerPage;
 
 $result = $conn->query($sql);
+
+if ($result === false) {
+    die("Error in SQL query: " . $conn->error);
+}
 
 $documents = array();
 if ($result->num_rows > 0) {
@@ -61,7 +63,7 @@ $documentResult = $conn->query($sql);
 $documentCount = $documentResult->fetch_assoc()['documentCount'];
 
 // Contagem de departamentos
-$sql = "SELECT COUNT(*) AS departmentCount FROM departments";
+$sql = "SELECT COUNT(DISTINCT department) AS departmentCount FROM users";
 $departmentResult = $conn->query($sql);
 $departmentCount = $departmentResult->fetch_assoc()['departmentCount'];
 

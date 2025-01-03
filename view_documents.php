@@ -14,7 +14,7 @@ session_start();
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-<div class="d-flex">
+<div class="flex">
     <!-- Sidebar -->
     <div class="bg-blue-900 text-white w-64 flex flex-col">
         <div class="flex items-center justify-center h-16 border-b border-blue-800">
@@ -67,7 +67,7 @@ session_start();
     </div>
 
     <!-- Main Content -->
-    <div class="flex-grow-1 flex flex-col">
+    <div class="flex-grow flex flex-col">
         <!-- Header -->
         <header class="flex items-center justify-between bg-white p-4 shadow">
             <div class="flex items-center">
@@ -132,8 +132,22 @@ session_start();
                     </li>
                 </ol>
             </nav>
-            <div id="documentCards" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                <!-- Document cards will be appended here by JavaScript -->
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Nome do Arquivo</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Descrição</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Data de Envio</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Usuário que Enviou</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Departamento do Usuário</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody id="documentTableBody">
+                        <!-- Document rows will be appended here by JavaScript -->
+                    </tbody>
+                </table>
             </div>
         </main>
     </div>
@@ -225,28 +239,31 @@ function loadDocuments(subfolderId) {
         data: { subfolderId: subfolderId },
         success: function(response) {
             const data = JSON.parse(response);
-            let documentCards = '';
+            let documentRows = '';
             if (data.documents.length > 0) {
                 data.documents.forEach(document => {
-                    documentCards += `
-                        <div class="bg-white p-4 rounded-lg shadow-md flex items-center transition-shadow duration-300 hover:shadow-lg">
-                            <i class="fas fa-file-alt fa-3x text-gray-500 mr-4"></i>
-                            <div>
-                                <h2 class="text-lg font-bold">${document.name}</h2>
-                                <p class="text-gray-600 text-sm">${document.description}</p>
+                    documentRows += `
+                        <tr>
+                            <td class="py-2 px-4 border-b border-gray-200">${document.name}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${document.description}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${document.upload_time}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${document.uploaded_by}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${document.department}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">
                                 <a href="${document.file_path}" class="text-blue-500 hover:underline" target="_blank">Visualizar</a>
-                            </div>
-                        </div>
+                                <button class="text-red-500 hover:underline ml-2" onclick="deleteDocument(${document.id})">Excluir</button>
+                            </td>
+                        </tr>
                     `;
                 });
             } else {
-                documentCards = `
-                    <div class="bg-white p-4 rounded-lg shadow-md flex items-center justify-center">
-                        <p class="text-gray-600 text-lg text-center">Nenhum documento encontrado nesta subpasta.</p>
-                    </div>
+                documentRows = `
+                    <tr>
+                        <td class="py-2 px-4 border-b border-gray-200 text-center" colspan="6">Nenhum documento encontrado nesta subpasta.</td>
+                    </tr>
                 `;
             }
-            $('#documentCards').html(documentCards);
+            $('#documentTableBody').html(documentRows);
         },
         error: function(xhr, status, error) {
             console.error('Error loading documents:', error);
@@ -271,6 +288,28 @@ function loadSubfolderName(subfolderId) {
             console.error('Error loading subfolder name:', error);
         }
     });
+}
+
+function deleteDocument(documentId) {
+    if (confirm('Tem certeza de que deseja excluir este documento?')) {
+        $.ajax({
+            url: 'delete_document.php',
+            type: 'POST',
+            data: { documentId: documentId },
+            success: function(response) {
+                const data = JSON.parse(response);
+                if (data.status === 'success') {
+                    alert('Documento excluído com sucesso!');
+                    loadDocuments(subfolderId);
+                } else {
+                    alert('Erro ao excluir documento: ' + data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting document:', error);
+            }
+        });
+    }
 }
 </script>
 </body>
