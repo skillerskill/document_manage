@@ -15,8 +15,8 @@ if ($conn->connect_error) {
 }
 
 // Verifique se o ID do documento foi fornecido
-if (isset($_POST['document_id'])) {
-    $document_id = intval($_POST['document_id']);
+if (isset($_POST['documentId'])) {
+    $document_id = intval($_POST['documentId']);
 
     // Prepare a declaração SQL para deletar o documento
     $stmt = $conn->prepare("DELETE FROM documents WHERE id = ?");

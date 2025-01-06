@@ -13,21 +13,11 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 if ($conn->connect_error) {
     die(json_encode(['status' => 'error', 'message' => 'Database connection failed: ' . $conn->connect_error]));
 }
+$id = $_GET["folderId"];
 
-// Get folder_id from the request
-$folder_id = isset($_GET['folderId']) ? intval($_GET['folderId']) : 0;
-
-if ($folder_id === 0) {
-    echo json_encode(['status' => 'error', 'message' => 'Invalid folder ID']);
-    exit;
-}
-
-// Fetch subfolders for the given folder_id
-$sql = "SELECT id, name, description, folder_id, created_at, path FROM subfolders WHERE folder_id = ?";
-$stmt = $conn->prepare($sql);
-$stmt->bind_param("i", $folder_id);
-$stmt->execute();
-$result = $stmt->get_result();
+// Fetch all subfolders
+$sql = "SELECT id, name, description, folder_id, created_at, path FROM subfolders WHERE folder_id = $id";
+$result = $conn->query($sql);
 
 $subfolders = [];
 while ($row = $result->fetch_assoc()) {
@@ -48,7 +38,6 @@ while ($row = $result->fetch_assoc()) {
     $count_stmt->close();
 }
 
-$stmt->close();
 $conn->close();
 
 echo json_encode(['status' => 'success', 'subfolders' => $subfolders]);

@@ -1,6 +1,6 @@
 <?php
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+session_start();
+//header('Content-Type: application/json');
 
 // Conexão com o banco de dados
 $servername = "localhost";
@@ -12,27 +12,36 @@ $conn = new mysqli($servername, $username, $password, $dbname);
 
 // Verifica a conexão
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die(json_encode(array("status" => "error", "message" => "Connection failed: " . $conn->connect_error)));
 }
 
-// Prepara a consulta SQL para obter todos os dados dos usuários
-$sql = "SELECT id, username, role, department FROM users";
-$result = $conn->query($sql);
+// Obtém o ID do usuário da requisição
+$userId = isset($_GET['userId']) ? intval($_GET['userId']) : 0;
 
-// Verifica se há usuários
+// Verifica se o ID do usuário é válido
+if ($userId <= 0) {
+    echo json_encode(array("status" => "error", "message" => "Invalid user ID."));
+    exit();
+}
+
+// Prepara a consulta SQL para obter os dados do usuário
+$sql = "SELECT id, username, role, function, department, registration_date FROM users WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $userId);
+$stmt->execute();
+$result = $stmt->get_result();
+
+// Verifica se o usuário foi encontrado
 if ($result->num_rows > 0) {
-    $users = [];
-    // Converte os dados dos usuários em um array associativo
-    while($row = $result->fetch_assoc()) {
-        $users[] = $row;
-    }
-    // Retorna os dados dos usuários como JSON
-    echo json_encode($users);
+    $user = $result->fetch_assoc();
+    // Retorna os dados do usuário como JSON
+    echo json_encode(array("status" => "success", "user" => $user));
 } else {
-    // Retorna um array vazio se não houver usuários
-    echo json_encode([]);
+    // Retorna um erro se o usuário não for encontrado
+    echo json_encode(array("status" => "error", "message" => "User not found."));
 }
 
 // Fecha a conexão com o banco de dados
+$stmt->close();
 $conn->close();
 ?>

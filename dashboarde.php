@@ -47,7 +47,7 @@ session_start();
                     <i class="fas fa-folder-open mr-3"></i>
                     Subpastas
                 </a>
-                <a class="flex items-center py-2 text-blue-300" href="#">
+                <a class="flex items-center py-2 text-blue-300" href="usuarios.php">
                     <i class="fas fa-users mr-3"></i>
                     Usuarios
                 </a>
@@ -82,7 +82,7 @@ session_start();
                     <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">7</span>
                 </div>
                 <div class="ml-4 flex items-center">
-                    <span class="text-gray-600" id="userName"><?php  echo $_SESSION["username"] ;  ?></span>
+                    <span class="text-gray-600" id="userName"><?php echo $_SESSION["username"]; ?></span>
                     <img alt="User avatar" class="ml-2 rounded-full" height="40" src="https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg" width="40"/>
                 </div>
             </div>
@@ -118,7 +118,7 @@ session_start();
                     </div>
                     <i class="fas fa-folder text-4xl text-gray-400"></i>
                 </div>
-                <div class="bg-white p-4 rounded shadow flex items-center justify-between">
+                <div id="usuario" class="bg-white p-4 rounded shadow flex items-center justify-between">
                     <div>
                         <h2 class="text-yellow-600">USUARIOS</h2>
                         <p class="text-2xl font-semibold" id="userCount">18</p>
@@ -160,7 +160,6 @@ session_start();
                 <div class="mb-3">
                     <label for="resultsPerPage">Resultados por página</label>
                     <select class="form-control" id="resultsPerPage">
-            
                         <option value="5">5</option>
                         <option value="10">10</option>
                         <option value="20">20</option>
@@ -172,11 +171,13 @@ session_start();
                     <table class="min-w-full bg-white border border-gray-200">
                         <thead>
                         <tr>
+                        <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Tipo de Arquivo</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Nome do arquivo</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Descrição</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Data de envio</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Usuário que enviou</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Departamento do usuário</th>
+                            <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Status</th>
                             <th class="py-2 px-4 border-b border-gray-200 text-left text-sm font-semibold text-gray-600">Ações</th>
                         </tr>
                         </thead>
@@ -272,8 +273,8 @@ session_start();
         </div>
     </div>
 </div>
-<script>
 
+<script>
 function loadDocuments() {
     const searchName = $('#searchName').val();
     const filterDepartment = $('#filterDepartment').val();
@@ -281,6 +282,12 @@ function loadDocuments() {
     const filterSubfolder = $('#filterSubfolder').val();
     const resultsPerPage = $('#resultsPerPage').val();
 
+    $("#pasta").on("click",function(){
+        window.location.href = "pasta.php";
+    });
+    $("#usuario").on("click",function(){
+        window.location.href = "usuarios.php";
+    })
     $.ajax({
         url: 'get_documents.php',
         type: 'GET',
@@ -304,18 +311,28 @@ function loadDocuments() {
                 const userCount = data.userCount;
                 const userRole = data.userRole;
                 const userName = data.userName;
+               
                 if (userRole === 'admin') {
                     $('#addUserButton').show();
                 }
                 let documentRows = '';
                 documents.forEach(document => {
+                     const fileTypeIcon = getFileTypeIcon(document.file_path);
                     documentRows += `
                         <tr>
+                            <td class="py-2 px-4 border-b border-gray-200">${fileTypeIcon}</td>
                             <td>${document.name}</td>
                             <td>${document.description}</td>
                             <td>${document.upload_time}</td>
                             <td>${document.uploaded_by}</td>
                             <td>${document.department}</td>
+                            <td>
+                                <select onchange="updateStatus(${document.id}, this.value)">
+                                    <option value="Aberto" ${document.status === 'Aberto' ? 'selected' : ''}>Aberto</option>
+                                    <option value="Em andamento" ${document.status === 'Em andamento' ? 'selected' : ''}>Em andamento</option>
+                                    <option value="Finalizado" ${document.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                                </select>
+                            </td>
                             <td>
                                 <a href="${document.file_path}" download>
                                     <i class="fas fa-download text-primary cursor-pointer"></i>
@@ -327,6 +344,7 @@ function loadDocuments() {
                             </td>
                         </tr>
                     `;
+                   
                 });
                 $('#documentTableBody').html(documentRows);
                 $('#documentCount').text(documentCount); // Atualiza a contagem de documentos no card
@@ -344,12 +362,30 @@ function loadDocuments() {
     });
 }
 
+function getFileTypeIcon(filePath) {
+    const extension = filePath.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'pdf':
+            return '<i class="fas fa-file-pdf text-red-500"></i>';
+        case 'doc':
+        case 'docx':
+            return '<i class="fas fa-file-word text-blue-500"></i>';
+        case 'xls':
+        case 'xlsx':
+            return '<i class="fas fa-file-excel text-green-500"></i>';
+        case 'ppt':
+        case 'pptx':
+            return '<i class="fas fa-file-powerpoint text-orange-500"></i>';
+        default:
+            return '<i class="fas fa-file text-gray-500"></i>';
+    }
+}
 $(document).ready(function() {
     // Load documents on page load
     loadDocuments();
 
     // Set interval to load documents every 2 seconds
-    setInterval(loadDocuments, 2000);
+    setInterval(loadDocuments, 4000);
 
     // Add document form submission
     $('#addDocumentForm').on('submit', function(e) {
@@ -389,27 +425,26 @@ $(document).ready(function() {
 
     // Load subfolders
     function loadSubfolders() {
-    $.ajax({
-        url: 'get_subfolders.php',
-        type: 'GET',
-        success: function(response) {
-            const data = JSON.parse(response);
-            if (data.status === 'success') {
-                let subfolderOptions = '<option value="" disabled selected>Selecionar Subpasta</option>';
-                data.subfolders.forEach(subfolder => {
-                    subfolderOptions += `<option value="${subfolder.id}">${subfolder.name} (Pasta: ${subfolder.folder_id})</option>`;
-                });
-                $('#floatingSelectSubfolder').html(subfolderOptions);
-            } else {
-                console.error('Error loading subfolders:', data.message);
+        $.ajax({
+            url: 'get_subfolders.php',
+            type: 'GET',
+            success: function(response) {
+                const data = JSON.parse(response);
+                if (data.status === 'success') {
+                    let subfolderOptions = '<option value="" disabled selected>Selecionar Subpasta</option>';
+                    data.subfolders.forEach(subfolder => {
+                        subfolderOptions += `<option value="${subfolder.id}">${subfolder.name} (Pasta: ${subfolder.folder_id})</option>`;
+                    });
+                    $('#floatingSelectSubfolder').html(subfolderOptions);
+                } else {
+                    console.error('Error loading subfolders:', data.message);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error loading subfolders:', error);
             }
-        },
-        error: function(xhr, status, error) {
-            console.error('Error loading subfolders:', error);
-        }
-    });
-}
-
+        });
+    }
 
     // Load departments
     function loadDepartments() {
@@ -435,6 +470,53 @@ $(document).ready(function() {
     loadSubfolders();
     loadDepartments();
 });
+
+function updateStatus(documentId, status) {
+    $.ajax({
+        url: 'update_document_status.php',
+        type: 'POST',
+        data: { documentId: documentId, status: status },
+        success: function(response) {
+            const data = JSON.parse(response);
+            if (data.status === 'success') {
+                alert('Status do documento atualizado com sucesso!');
+                loadDocuments();
+            } else {
+                alert('Erro ao atualizar status do documento: ' + data.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating document status:', error);
+        }
+    });
+}
+
+function editDocument(documentId) {
+    // Implement edit document functionality
+}
+
+function deleteDocument(documentId) {
+    if (confirm('Tem certeza de que deseja excluir este documento?')) {
+        $.ajax({
+            url: 'delete_document.php',
+            type: 'POST',
+            data: { documentId: documentId },
+            success: function(response) {
+                const data = JSON.parse(response);
+                if (data.status === 'success') {
+                    alert('Documento excluído com sucesso!');
+                    loadDocuments();
+                } else {
+                    alert('Erro ao excluir documento: ' + data.message + documentId);
+                }
+            },
+            error: function(xhr, status, error) {
+                console.error('Error deleting document:', error);
+            }
+        });
+    }
+}
 </script>
 
-     </body>
+</body>
+</html>

@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 ?>
@@ -14,9 +15,9 @@ session_start();
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-<div class="flex">
+<div class="flex flex-col md:flex-row">
     <!-- Sidebar -->
-    <div class="bg-blue-900 text-white w-64 flex flex-col">
+    <div class="bg-blue-900 text-white w-full md:w-64 flex flex-col">
         <div class="flex items-center justify-center h-16 border-b border-blue-800">
             <i class="fas fa-user-circle text-3xl"></i>
             <span class="ml-2 text-xl font-semibold">MAPTS<sup>1</sup></span>
@@ -67,10 +68,10 @@ session_start();
     </div>
 
     <!-- Main Content -->
-    <div class="flex-grow flex flex-col">
+    <div class="flex-grow flex flex-col p-4">
         <!-- Header -->
-        <header class="flex items-center justify-between bg-white p-4 shadow">
-            <div class="flex items-center">
+        <header class="flex flex-col md:flex-row items-center justify-between bg-white p-4 shadow mb-4">
+            <div class="flex items-center mb-4 md:mb-0">
                 <input class="border border-gray-300 rounded-l px-4 py-2" placeholder="pesquisar" type="text"/>
                 <button class="bg-blue-900 text-white px-4 py-2 rounded-r">
                     <i class="fas fa-search"></i>
@@ -92,7 +93,7 @@ session_start();
             </div>
         </header>
         <!-- Main content -->
-        <main class="flex-1 p-6">
+        <main class="flex-1">
             <div class="flex justify-between items-center mb-6">
                 <h1 class="text-2xl font-semibold">Documentos</h1>
                 <button class="bg-blue-900 text-white px-4 py-2 rounded" data-bs-toggle="modal" data-bs-target="#addDocumentModal">
@@ -132,15 +133,28 @@ session_start();
                     </li>
                 </ol>
             </nav>
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+                <select class="border border-gray-300 rounded px-4 py-2" id="filterDepartment">
+                    <option value="">Buscar por Departamento</option>
+                    <option value="Recursos Humanos">Recursos Humanos</option>
+                    <option value="Finanças">Finanças</option>
+                    <option value="Marketing">Marketing</option>
+                </select>
+                <div class="flex">
+                    <input class="border border-gray-300 rounded-l px-4 py-2 flex-1" placeholder="pesquisar por nome" type="text" id="searchName"/>
+                </div>
+            </div>
             <div class="overflow-x-auto">
                 <table class="min-w-full bg-white">
                     <thead>
                         <tr>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Tipo</th>
                             <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Nome do Arquivo</th>
                             <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Descrição</th>
                             <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Data de Envio</th>
                             <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Usuário que Enviou</th>
                             <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Departamento do Usuário</th>
+                            <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Status</th>
                             <th class="py-2 px-4 border-b border-gray-200 bg-gray-100 text-left text-sm font-semibold text-gray-700">Ações</th>
                         </tr>
                     </thead>
@@ -193,10 +207,11 @@ session_start();
 </div>
 
 <script>
-   $(document).ready(function() {
+$(document).ready(function() {
     // Get subfolder ID from URL
     const urlParams = new URLSearchParams(window.location.search);
     const subfolderId = urlParams.get('subfolder_id');
+    const folderId = urlParams.get('folder_id');
 
     // Load documents for the specific subfolder on page load
     loadDocuments(subfolderId);
@@ -230,28 +245,48 @@ session_start();
             }
         });
     });
+
+    // Filter documents on input change
+    $('#searchName, #filterDepartment').on('input change', function() {
+        loadDocuments(subfolderId);
+    });
 });
 
 function loadDocuments(subfolderId) {
+    const searchName = $('#searchName').val();
+    const filterDepartment = $('#filterDepartment').val();
+
     $.ajax({
         url: 'get_documents.php',
         type: 'GET',
-        data: { subfolderId: subfolderId },
+        data: { 
+            subfolderId: subfolderId,
+            searchName: searchName,
+            filterDepartment: filterDepartment
+        },
         success: function(response) {
             const data = JSON.parse(response);
             let documentRows = '';
             if (data.documents.length > 0) {
                 data.documents.forEach(document => {
+                    const fileTypeIcon = getFileTypeIcon(document.file_path);
                     documentRows += `
                         <tr>
+                            <td class="py-2 px-4 border-b border-gray-200">${fileTypeIcon}</td>
                             <td class="py-2 px-4 border-b border-gray-200">${document.name}</td>
                             <td class="py-2 px-4 border-b border-gray-200">${document.description}</td>
                             <td class="py-2 px-4 border-b border-gray-200">${document.upload_time}</td>
                             <td class="py-2 px-4 border-b border-gray-200">${document.uploaded_by}</td>
                             <td class="py-2 px-4 border-b border-gray-200">${document.department}</td>
+                            <td class="py-2 px-4 border-b border-gray-200">${document.status}</td>
                             <td class="py-2 px-4 border-b border-gray-200">
                                 <a href="${document.file_path}" class="text-blue-500 hover:underline" target="_blank">Visualizar</a>
                                 <button class="text-red-500 hover:underline ml-2" onclick="deleteDocument(${document.id})">Excluir</button>
+                                <select class="ml-2" onchange="updateStatus(${document.id}, this.value)">
+                                    <option value="Aberto" ${document.status === 'Aberto' ? 'selected' : ''}>Aberto</option>
+                                    <option value="Em andamento" ${document.status === 'Em andamento' ? 'selected' : ''}>Em andamento</option>
+                                    <option value="Finalizado" ${document.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
+                                </select>
                             </td>
                         </tr>
                     `;
@@ -259,7 +294,7 @@ function loadDocuments(subfolderId) {
             } else {
                 documentRows = `
                     <tr>
-                        <td class="py-2 px-4 border-b border-gray-200 text-center" colspan="6">Nenhum documento encontrado nesta subpasta.</td>
+                        <td class="py-2 px-4 border-b border-gray-200 text-center" colspan="8">Nenhum documento encontrado nesta subpasta.</td>
                     </tr>
                 `;
             }
@@ -269,6 +304,25 @@ function loadDocuments(subfolderId) {
             console.error('Error loading documents:', error);
         }
     });
+}
+
+function getFileTypeIcon(filePath) {
+    const extension = filePath.split('.').pop().toLowerCase();
+    switch (extension) {
+        case 'pdf':
+            return '<i class="fas fa-file-pdf text-red-500"></i>';
+        case 'doc':
+        case 'docx':
+            return '<i class="fas fa-file-word text-blue-500"></i>';
+        case 'xls':
+        case 'xlsx':
+            return '<i class="fas fa-file-excel text-green-500"></i>';
+        case 'ppt':
+        case 'pptx':
+            return '<i class="fas fa-file-powerpoint text-orange-500"></i>';
+        default:
+            return '<i class="fas fa-file text-gray-500"></i>';
+    }
 }
 
 function loadSubfolderName(subfolderId) {
@@ -311,6 +365,27 @@ function deleteDocument(documentId) {
         });
     }
 }
+
+function updateStatus(documentId, status) {
+    $.ajax({
+        url: 'update_document_status.php',
+        type: 'POST',
+        data: { documentId: documentId, status: status },
+        success: function(response) {
+            const data = JSON.parse(response);
+            if (data.status === 'success') {
+                alert('Status do documento atualizado com sucesso!');
+                loadDocuments(subfolderId);
+            } else {
+                alert('Erro ao atualizar status do documento: ' + data.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error updating document status:', error);
+        }
+    });
+}
 </script>
+
 </body>
 </html>

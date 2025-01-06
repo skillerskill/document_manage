@@ -22,7 +22,7 @@ $filterSubfolder = isset($_GET['filterSubfolder']) ? $_GET['filterSubfolder'] : 
 $resultsPerPage = isset($_GET['resultsPerPage']) ? intval($_GET['resultsPerPage']) : 10;
 
 // Construa a consulta SQL com os filtros
-$sql = "SELECT documents.id, documents.name, documents.description, documents.upload_time, users.username AS uploaded_by, departments.name AS department, documents.file_path 
+$sql = "SELECT documents.id, documents.name, documents.description, documents.upload_time, documents.status, users.username AS uploaded_by, departments.name AS department, documents.file_path 
         FROM documents 
         JOIN users ON documents.user_id = users.id 
         JOIN departments ON documents.department_id = departments.id 
