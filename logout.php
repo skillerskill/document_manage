@@ -2,7 +2,7 @@
 session_start();
 
 // Verifica se o usuário está logado
-if (isset($_SESSION['username']) && isset($_SESSION["user_id"] ) && isset($_SESSION["role"])) {
+if (isset($_SESSION['username']) && isset($_SESSION["user_id"] ) && isset($_SESSION["role"]) && isset( $_SESSION['user_department'])) {
     // Destroi a sessão
     session_unset();
     session_destroy();

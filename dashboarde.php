@@ -65,28 +65,9 @@ session_start();
     <!-- Main Content -->
     <div class="flex-grow-1 flex flex-col">
         <!-- Header -->
-        <header class="flex items-center justify-between bg-white p-4 shadow">
-            <div class="flex items-center">
-                <input class="border border-gray-300 rounded-l px-4 py-2" placeholder="pesquisar" type="text"/>
-                <button class="bg-blue-900 text-white px-4 py-2 rounded-r">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-            <div class="flex items-center">
-                <div class="relative">
-                    <i class="fas fa-bell text-gray-600 text-xl"></i>
-                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">3+</span>
-                </div>
-                <div class="relative ml-4">
-                    <i class="fas fa-envelope text-gray-600 text-xl"></i>
-                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">7</span>
-                </div>
-                <div class="ml-4 flex items-center">
-                    <span class="text-gray-600" id="userName"><?php echo $_SESSION["username"]; ?></span>
-                    <img alt="User avatar" class="ml-2 rounded-full" height="40" src="https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg" width="40"/>
-                </div>
-            </div>
-        </header>
+      <?php
+        include_once("header.php");
+      ?>
         <!-- Main content -->
         <main class="flex-1 p-6">
             <div class="flex justify-between items-center mb-6">
@@ -380,13 +361,77 @@ function getFileTypeIcon(filePath) {
             return '<i class="fas fa-file text-gray-500"></i>';
     }
 }
+function loadNotifications() {
+    $.ajax({
+        url: 'get_notifications.php',
+        type: 'GET',
+        success: function(response) {
+            const data = JSON.parse(response);
+            if (data.status === 'success') {
+                const notifications = data.notifications;
+                let notificationList = '';
+                let unreadCount = 0;
+                let newNotifications = false;
+
+                notifications.forEach(notification => {
+                    if (!notification.is_read) {
+                        unreadCount++;
+                        newNotifications = true;
+                    }
+                    notificationList += `
+                        <li class="py-2 border-b border-gray-200">
+                            <p class="text-sm text-gray-600">${notification.message}</p>
+                            <small class="text-xs text-gray-400">${notification.created_at}</small>
+                            ${!notification.is_read ? `<button class="text-blue-500 text-xs" onclick="markAsRead(${notification.id})">Marcar como lida</button>` : ''}
+                        </li>
+                    `;
+                });
+
+                $('#notificationList').html(notificationList);
+                $('#notificationCount').text(unreadCount);
+
+               
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error loading notifications:', error);
+        }
+    });
+}
+
+function markAsRead(notificationId) {
+    $.ajax({
+        url: 'mark_notification_read.php',
+        type: 'POST',
+        data: { notification_id: notificationId },
+        success: function(response) {
+            const data = JSON.parse(response);
+            if (data.status === 'success') {
+                loadNotifications();
+            } else {
+                alert('Erro ao marcar notificação como lida: ' + data.message);
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error marking notification as read:', error);
+        }
+    });
+}
+
 $(document).ready(function() {
     // Load documents on page load
     loadDocuments();
 
     // Set interval to load documents every 2 seconds
     setInterval(loadDocuments, 4000);
-
+     // Load notifications on page load
+     setInterval(() => {
+        loadNotifications();
+    }, 2500);
+     // Toggle notification dropdown
+     $('#notificationIcon').on('click', function() {
+        $('#notificationDropdown').toggleClass('hidden');
+    });
     // Add document form submission
     $('#addDocumentForm').on('submit', function(e) {
         e.preventDefault();
@@ -426,7 +471,7 @@ $(document).ready(function() {
     // Load subfolders
     function loadSubfolders() {
         $.ajax({
-            url: 'get_subfolders.php',
+            url: 'get_subpastas.php',
             type: 'GET',
             success: function(response) {
                 const data = JSON.parse(response);

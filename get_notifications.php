@@ -20,7 +20,7 @@ if ($user_id <= 0) {
     exit();
 }
 
-$sql = "SELECT id, message, is_read, created_at FROM notifications WHERE user_id = ? ORDER BY created_at DESC";
+$sql = "SELECT id, message, is_read, created_at FROM notifications WHERE user_id != ? ORDER BY created_at DESC";
 $stmt = $conn->prepare($sql);
 $stmt->bind_param("i", $user_id);
 $stmt->execute();

@@ -19,13 +19,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $password = $_POST['password'];
 
     // Prepare and bind
-    $stmt = $conn->prepare("SELECT id, password, role FROM users WHERE username = ?");
+    $stmt = $conn->prepare("SELECT id, password, role,department  FROM users WHERE username = ?");
     $stmt->bind_param("s", $username);
     $stmt->execute();
     $stmt->store_result();
 
     if ($stmt->num_rows > 0) {
-        $stmt->bind_result($id, $hashed_password, $role);
+        $stmt->bind_result($id, $hashed_password, $role, $department);
         $stmt->fetch();
 
         // Verify password
@@ -34,6 +34,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['user_id'] = $id;
             $_SESSION['username'] = $username;
             $_SESSION['role'] = $role;
+            $_SESSION['user_department'] = $department;
             echo 'success';
         } else {
             echo 'Invalid password';
@@ -44,6 +45,6 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
 
     $stmt->close();
 }
-
+//echo  $_SESSION['user_department'];
 $conn->close();
 ?>

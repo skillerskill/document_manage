@@ -1,3 +1,4 @@
+
 <?php
 session_start();
 ?>
@@ -65,36 +66,9 @@ session_start();
     <!-- Main Content -->
     <div class="flex-grow-1 flex flex-col">
         <!-- Header -->
-        <header class="flex items-center justify-between bg-white p-4 shadow">
-            <div class="flex items-center">
-                <input class="border border-gray-300 rounded-l px-4 py-2" placeholder="pesquisar" type="text" id="searchName"/>
-                <button class="bg-blue-900 text-white px-4 py-2 rounded-r" id="searchButton">
-                    <i class="fas fa-search"></i>
-                </button>
-            </div>
-            <div class="flex items-center">
-            <div class="relative">
-                    <i class="fas fa-bell text-gray-600 text-xl cursor-pointer" id="notificationIcon"></i>
-                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1" id="notificationCount">0</span>
-                    <div class="absolute right-0 mt-2 w-64 bg-white border border-gray-200 rounded shadow-lg hidden" id="notificationDropdown">
-                        <div class="p-4">
-                            <h4 class="text-gray-600">Notificações</h4>
-                            <ul id="notificationList" class="list-none p-0">
-                                <!-- Notifications will be appended here by JavaScript -->
-                            </ul>
-                        </div>
-                    </div>
-                </div>
-                <div class="relative ml-4">
-                    <i class="fas fa-envelope text-gray-600 text-xl"></i>
-                    <span class="absolute top-0 right-0 bg-red-500 text-white text-xs rounded-full px-1">7</span>
-                </div>
-                <div class="ml-4 flex items-center">
-                    <span class="text-gray-600" id="userName"><?php echo $_SESSION["username"]; ?></span>
-                    <img alt="User avatar" class="ml-2 rounded-full" height="40" src="https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg" width="40"/>
-                </div>
-            </div>
-        </header>
+       <?php
+        include_once("header.php");
+       ?>
         <!-- Main content -->
         <main class="flex-1 p-6">
             <div class="flex justify-between items-center mb-6">
@@ -108,7 +82,6 @@ session_start();
                 <div class="flex mb-4">
                     <input class="border border-gray-300 rounded-l px-4 py-2 flex-1" placeholder="Pesquisar por nome" type="text" id="filterName"/>
                     <select class="border border-gray-300 rounded-r px-4 py-2" id="filterDepartment">
-                        
                         <!-- Department options will be loaded here by JavaScript -->
                     </select>
                 </div>
@@ -237,6 +210,9 @@ session_start();
     </div>
 </div>
 
+
+<audio id="notificationSound" src="uploads/noti.mp3" preload="auto"></audio>
+
 <script>
 function loadUsers() {
     const searchName = $('#filterName').val();
@@ -281,7 +257,7 @@ function loadDepartments() {
         type: 'GET',
         success: function(response) {
             const data = JSON.parse(response);
-            let departmentOptions = '<option value=""  selected>Selecionar Departamento</option>';
+            let departmentOptions = '<option value="" selected>Selecionar Departamento</option>';
             data.departments.forEach(department => {
                 departmentOptions += `<option value="${department.name}">${department.name}</option>`;
             });
@@ -295,19 +271,6 @@ function loadDepartments() {
     });
 }
 
-$(document).ready(function() {
-    // Load users and departments on page load
-    loadUsers();
-    loadDepartments();
-
-     // Load notifications on page load
-     loadNotifications();
-
-// Toggle notification dropdown
-$('#notificationIcon').on('click', function() {
-    $('#notificationDropdown').toggleClass('hidden');
-});
-
 function loadNotifications() {
     $.ajax({
         url: 'get_notifications.php',
@@ -318,10 +281,12 @@ function loadNotifications() {
                 const notifications = data.notifications;
                 let notificationList = '';
                 let unreadCount = 0;
+                let newNotifications = false;
 
                 notifications.forEach(notification => {
                     if (!notification.is_read) {
                         unreadCount++;
+                        newNotifications = true;
                     }
                     notificationList += `
                         <li class="py-2 border-b border-gray-200">
@@ -334,6 +299,8 @@ function loadNotifications() {
 
                 $('#notificationList').html(notificationList);
                 $('#notificationCount').text(unreadCount);
+
+               
             }
         },
         error: function(xhr, status, error) {
@@ -361,6 +328,20 @@ function markAsRead(notificationId) {
     });
 }
 
+$(document).ready(function() {
+    // Load users and departments on page load
+    loadUsers();
+    loadDepartments();
+
+    // Load notifications on page load
+    setInterval(() => {
+        loadNotifications();
+    }, 2500);
+
+    // Toggle notification dropdown
+    $('#notificationIcon').on('click', function() {
+        $('#notificationDropdown').toggleClass('hidden');
+    });
 
     // Add user form submission
     $('#addUserForm').on('submit', function(e) {
@@ -465,5 +446,6 @@ function deleteUser(userId) {
     }
 }
 </script>
+
 </body>
 </html>

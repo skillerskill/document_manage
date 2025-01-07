@@ -63,7 +63,13 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $stmt->bind_param("ssissss", $name, $description, $user_id, $department_id, $folder_path, $subfolder_path, $file_path);
 
             if ($stmt->execute()) {
-                echo json_encode(['status' => 'success', 'message' => 'Documento adicionado com sucesso']);
+                // Adicionar notificação
+                $notification_message = "Novo documento adicionado: " . $name;
+                $stmt = $conn->prepare("INSERT INTO notifications (user_id, message) VALUES (?, ?)");
+                $stmt->bind_param("is", $user_id, $notification_message);
+                $stmt->execute();
+
+                echo json_encode(['status' => 'success', 'message' => 'Documento e notificação adicionados com sucesso']);
             } else {
                 echo json_encode(['status' => 'error', 'message' => 'Falha ao adicionar documento: ' . $stmt->error]);
             }
