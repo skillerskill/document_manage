@@ -14,7 +14,7 @@ session_start();
     <script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-<div class="d-flex">
+<div class="flex">
     <!-- Sidebar -->
     <div class="bg-blue-900 text-white w-64 flex flex-col">
         <div class="flex items-center justify-center h-16 border-b border-blue-800">
@@ -64,7 +64,7 @@ session_start();
     </div>
 
     <!-- Main Content -->
-    <div class="flex-grow-1 flex flex-col">
+    <div class="flex-grow flex flex-col">
         <!-- Header -->
         <?php include_once("header.php"); ?>
         <!-- Main content -->
@@ -99,7 +99,13 @@ session_start();
                     <div class="mb-3">
                         <label for="departmentSelect" class="form-label">Departamento</label>
                         <select class="form-select" id="departmentSelect" name="department">
-                            <!-- Options will be populated by JavaScript -->
+                            <?php if ($_SESSION['role'] == 'admin'): ?>
+                                <!-- Options will be populated by JavaScript for admin -->
+                            <?php else: ?>
+                                <option value="<?php echo $_SESSION['user_department']; ?>" selected>
+                                    <?php echo $_SESSION['user_department']; ?>
+                                </option>
+                            <?php endif; ?>
                         </select>
                     </div>
                     <div class="mb-3">
@@ -134,7 +140,7 @@ function loadMessages() {
                     messageHtml += `
                         <div class="mb-4 ${isUserMessage ? 'text-right' : ''}">
                             <div class="flex items-center mb-2 ${isUserMessage ? 'justify-end' : ''}">
-                                <img src="https://thumbs.dreamstime.com/b/default-avatar-profile-vector-user-profile-default-avatar-profile-vector-user-profile-profile-179376714.jpg" alt="Profile picture of ${message.sender_name}" class="w-10 h-10 rounded-full ${isUserMessage ? 'ml-3' : 'mr-3'}">
+                                <img src="https://placehold.co/40x40" alt="Profile picture of ${message.sender_name}" class="w-10 h-10 rounded-full ${isUserMessage ? 'ml-3' : 'mr-3'}">
                                 <div>
                                     <p class="text-sm font-semibold">${message.sender_name}</p>
                                     <p class="text-xs text-gray-500">${new Date(message.timestamp).toLocaleString()}</p>
@@ -190,15 +196,39 @@ function loadDepartments() {
     });
 }
 
+function checkNewMessages() {
+    $.ajax({
+        url: 'check_new_messages.php',
+        type: 'GET',
+        success: function(response) {
+            const data = JSON.parse(response);
+            if (data.new_messages > 0) {
+                $('#messageCount').text(data.new_messages).removeClass('hidden');
+            } else {
+                $('#messageCount').addClass('hidden');
+            }
+        },
+        error: function(xhr, status, error) {
+            console.error('Error checking new messages:', error);
+        }
+    });
+}
+
 $(document).ready(function() {
     // Load messages on page load
-    
     setInterval(() => {
         loadMessages();
     }, 500);
 
-    // Load departments on page load
-    loadDepartments();
+    // Load departments on page load if user is admin
+    <?php if ($_SESSION['role'] == 'admin'): ?>
+        loadDepartments();
+    <?php endif; ?>
+
+    // Check for new messages periodically
+    setInterval(() => {
+        checkNewMessages();
+    }, 5000);
 
     // Send message form submission
     $('#sendMessageForm').on('submit', function(e) {
