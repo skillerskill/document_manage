@@ -14,31 +14,51 @@ $user_department = $_SESSION['user_department'];
 
 // Verifique se a conexão com o banco de dados foi estabelecida
 if ($conn->connect_error) {
-    die("Connection failed: " . $conn->connect_error);
+    die(json_encode(['status' => 'error', 'message' => 'Connection failed: ' . $conn->connect_error]));
 }
 
 // Obtenha o ID do departamento do usuário
-$sq = "SELECT id FROM departments WHERE name = '$user_department'";
-$sq2 = mysqli_query($conn, $sq);
-$pegar = mysqli_fetch_assoc($sq2);
-$idd = $pegar["id"];
+$sq = "SELECT id FROM departments WHERE name = ?";
+$stmt = $conn->prepare($sq);
+$stmt->bind_param("s", $user_department);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows > 0) {
+    $pegar = $result->fetch_assoc();
+    $idd = $pegar["id"];
+} else {
+    echo json_encode(['status' => 'error', 'message' => 'Department not found']);
+    exit;
+}
+
+$stmt->close();
 
 if ($user_role == 'admin') {
     // Admin pode ver todas as mensagens
     $sql = "SELECT messages.*, users.username AS sender_name 
             FROM messages 
             JOIN users ON messages.sender_id = users.id 
-            ORDER BY messages.timestamp DESC";
+            ORDER BY messages.created_at DESC";
 } else {
     // Usuários comuns podem ver mensagens enviadas para o departamento deles ou por eles mesmos
     $sql = "SELECT messages.*, users.username AS sender_name 
             FROM messages 
             JOIN users ON messages.sender_id = users.id 
-            WHERE messages.department_id = '$idd' OR messages.sender_id = '$user_id'
-            ORDER BY messages.timestamp DESC";
+            WHERE messages.department_id = ? OR messages.sender_id = ?
+            ORDER BY messages.created_at DESC";
 }
 
-$result = $conn->query($sql);
+$stmt = $conn->prepare($sql);
+
+if ($user_role == 'admin') {
+    $stmt->execute();
+} else {
+    $stmt->bind_param("ii", $idd, $user_id);
+    $stmt->execute();
+}
+
+$result = $stmt->get_result();
 
 $messages = [];
 if ($result->num_rows > 0) {
@@ -47,7 +67,8 @@ if ($result->num_rows > 0) {
     }
 }
 
-echo json_encode(['messages' => $messages]);
+echo json_encode(['status' => 'success', 'messages' => $messages]);
 
+$stmt->close();
 $conn->close();
 ?>

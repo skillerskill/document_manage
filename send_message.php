@@ -15,7 +15,7 @@ if (!isset($_POST['department']) || !isset($_POST['message'])) {
 }
 
 $sender_id = $_SESSION['user_id'];
-$department_id = $_POST['department'];
+$department_id = intval($_POST['department']);
 $content = $_POST['message'];
 
 // Valide a entrada
@@ -23,6 +23,22 @@ if (empty($department_id) || empty($content)) {
     echo json_encode(['status' => 'error', 'message' => 'Department and message content cannot be empty']);
     exit;
 }
+
+// Verifique se o department_id existe
+$sql = "SELECT id FROM departments WHERE id = ?";
+$stmt = $conn->prepare($sql);
+$stmt->bind_param("i", $department_id);
+$stmt->execute();
+$result = $stmt->get_result();
+
+if ($result->num_rows === 0) {
+    echo json_encode(['status' => 'error', 'message' => 'Invalid department ID']);
+    $stmt->close();
+    $conn->close();
+    exit;
+}
+
+$stmt->close();
 
 // Prepare e execute a declaração SQL para inserir a mensagem
 $sql = "INSERT INTO messages (sender_id, department_id, content) VALUES (?, ?, ?)";
