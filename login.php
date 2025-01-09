@@ -24,9 +24,17 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
     $stmt->execute();
     $stmt->store_result();
 
+
+
     if ($stmt->num_rows > 0) {
         $stmt->bind_result($id, $hashed_password, $role, $department);
         $stmt->fetch();
+
+        //pegar o id do departamento
+        $sq = "SELECT * FROM departments WHERE name = '$department'";
+        $ee = mysqli_query($conn,$sq);
+        $i = mysqli_fetch_assoc($ee);
+
 
         // Verify password
         if (password_verify($password, $hashed_password)) {
@@ -35,6 +43,7 @@ if ($_SERVER['REQUEST_METHOD'] == 'POST') {
             $_SESSION['username'] = $username;
             $_SESSION['role'] = $role;
             $_SESSION['user_department'] = $department;
+            $_SESSION['id_department'] = $i["id"];
             echo 'success';
         } else {
             echo 'Invalid password';

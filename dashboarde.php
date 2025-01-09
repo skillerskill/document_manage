@@ -43,10 +43,7 @@ session_start();
                     <i class="fas fa-folder mr-3"></i>
                     Pastas
                 </a>
-                <a class="flex items-center py-2 text-blue-300" href="subpastas.php">
-                    <i class="fas fa-folder-open mr-3"></i>
-                    Subpastas
-                </a>
+                
                 <a class="flex items-center py-2 text-blue-300" href="usuarios.php">
                     <i class="fas fa-users mr-3"></i>
                     Usuarios
@@ -85,7 +82,7 @@ session_start();
                     </div>
                     <i class="fas fa-file-alt text-4xl text-gray-400"></i>
                 </div>
-                <div class="bg-white p-4 rounded shadow flex items-center justify-between">
+                <div id="depart" class="bg-white p-4 rounded shadow flex items-center justify-between">
                     <div>
                         <h2 class="text-green-600">DEPARTAMENTO</h2>
                         <p class="text-2xl font-semibold" id="departmentCount">12</p>
@@ -268,6 +265,9 @@ function loadDocuments() {
     });
     $("#usuario").on("click",function(){
         window.location.href = "usuarios.php";
+    })
+    $("#depart").on("click",function(){
+        window.location.href = "departament.php";
     })
     $.ajax({
         url: 'get_documents.php',

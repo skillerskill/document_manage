@@ -23,7 +23,7 @@ session_start();
             <span class="ml-2 text-xl font-semibold">MAPTS<sup>1</sup></span>
         </div>
         <nav class="flex-1 px-4 py-6">
-            <a class="flex items-center py-2 text-blue-300" href="#">
+            <a class="flex items-center py-2 text-blue-300" href="dashboarde.php">
                 <i class="fas fa-home mr-3"></i>
                 Início
             </a>

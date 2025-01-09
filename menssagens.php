@@ -22,7 +22,7 @@ session_start();
             <span class="ml-2 text-xl font-semibold">MAPTS<sup>1</sup></span>
         </div>
         <nav class="flex-1 px-4 py-6">
-            <a class="flex items-center py-2 text-blue-300" href="#">
+            <a class="flex items-center py-2 text-blue-300" href="dashboarde.php">
                 <i class="fas fa-home mr-3"></i>
                 Início
             </a>
@@ -102,7 +102,7 @@ session_start();
                             <?php if ($_SESSION['role'] == 'admin'): ?>
                                 <!-- Options will be populated by JavaScript for admin -->
                             <?php else: ?>
-                                <option value="<?php echo $_SESSION['user_department']; ?>" selected>
+                                <option value="<?php echo $_SESSION['id_department']; ?>" selected>
                                     <?php echo $_SESSION['user_department']; ?>
                                 </option>
                             <?php endif; ?>
@@ -143,7 +143,7 @@ function loadMessages() {
                                 <img src="https://placehold.co/40x40" alt="Profile picture of ${message.sender_name}" class="w-10 h-10 rounded-full ${isUserMessage ? 'ml-3' : 'mr-3'}">
                                 <div>
                                     <p class="text-sm font-semibold">${message.sender_name}</p>
-                                    <p class="text-xs text-gray-500">${new Date(message.timestamp).toLocaleString()}</p>
+                                    <p class="text-xs text-gray-500">${new Date(message.created_at).toLocaleString()}</p>
                                 </div>
                             </div>
                             <div class="inline-block max-w-xs p-3 rounded-lg ${isUserMessage ? 'bg-blue-500 text-white' : 'bg-gray-300'}">

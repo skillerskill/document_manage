@@ -40,15 +40,12 @@ session_start();
             </div>
             <div class="mt-6">
                 <h3 class="text-sm font-semibold text-blue-400">ADDONS</h3>
-                <a class="flex items-center py-2 mt-2 text-blue-300" href="#">
+                <a class="flex items-center py-2 mt-2 text-blue-300" href="pasta.pphp">
                     <i class="fas fa-folder mr-3"></i>
                     Pastas
                 </a>
-                <a class="flex items-center py-2 text-blue-300" href="subpastas.php">
-                    <i class="fas fa-folder-open mr-3"></i>
-                    Subpastas
-                </a>
-                <a class="flex items-center py-2 text-blue-300" href="#">
+               
+                <a class="flex items-center py-2 text-blue-300" href="usuarios.php">
                     <i class="fas fa-users mr-3"></i>
                     Usuarios
                 </a>
@@ -112,7 +109,7 @@ session_start();
                     <li>
                         <div class="flex items-center">
                             <i class="fas fa-chevron-right text-gray-400 mx-2"></i>
-                            <a href="folders.php" class="text-gray-700 hover:text-gray-900">
+                            <a href="pasta.php" class="text-gray-700 hover:text-gray-900">
                                 Pastas
                             </a>
                         </div>
