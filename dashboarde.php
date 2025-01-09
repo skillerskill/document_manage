@@ -292,6 +292,7 @@ function loadDocuments() {
                 const userCount = data.userCount;
                 const userRole = data.userRole;
                 const userName = data.userName;
+                const userDepartment = data.userDepartment;
                
                 if (userRole === 'admin') {
                     $('#addUserButton').show();
@@ -308,11 +309,13 @@ function loadDocuments() {
                             <td>${document.uploaded_by}</td>
                             <td>${document.department}</td>
                             <td>
+                                ${userRole === 'admin' ? `
                                 <select onchange="updateStatus(${document.id}, this.value)">
                                     <option value="Aberto" ${document.status === 'Aberto' ? 'selected' : ''}>Aberto</option>
                                     <option value="Em andamento" ${document.status === 'Em andamento' ? 'selected' : ''}>Em andamento</option>
                                     <option value="Finalizado" ${document.status === 'Finalizado' ? 'selected' : ''}>Finalizado</option>
                                 </select>
+                                ` : document.status}
                             </td>
                             <td>
                                 <a href="${document.file_path}" download>
@@ -497,10 +500,14 @@ $(document).ready(function() {
             url: 'get_departments.php',
             type: 'GET',
             success: function(response) {
+                const userRole = '<?php echo $_SESSION['role']; ?>';
+                const userDepartment = '<?php echo $_SESSION['user_department']; ?>';
                 const data = JSON.parse(response);
                 let departmentOptions = '<option value="" disabled selected>Selecionar Departamento</option>';
                 data.departments.forEach(department => {
-                    departmentOptions += `<option value="${department.id}">${department.name}</option>`;
+                    if (userRole === 'admin' || department.name === userDepartment) {
+                        departmentOptions += `<option value="${department.id}">${department.name}</option>`;
+                    }
                 });
                 $('#departmentSelect').html(departmentOptions);
             },
@@ -562,6 +569,8 @@ function deleteDocument(documentId) {
     }
 }
 </script>
+
+
 
 </body>
 </html>

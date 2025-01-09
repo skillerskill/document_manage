@@ -20,10 +20,14 @@ $sql = "SELECT id, name FROM departments";
 $result = $conn->query($sql);
 
 $departments = array();
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
-        $departments[] = $row;
+if ($result) {
+    if ($result->num_rows > 0) {
+        while($row = $result->fetch_assoc()) {
+            $departments[] = $row;
+        }
     }
+} else {
+    error_log("Error fetching departments: " . $conn->error);
 }
 
 $response = array(

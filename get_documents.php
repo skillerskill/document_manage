@@ -21,13 +21,20 @@ $filterFolder = isset($_GET['filterFolder']) ? $_GET['filterFolder'] : '';
 $filterSubfolder = isset($_GET['filterSubfolder']) ? $_GET['filterSubfolder'] : '';
 $resultsPerPage = isset($_GET['resultsPerPage']) ? intval($_GET['resultsPerPage']) : 10;
 
+// Dados do usuário logado
+$userRole = isset($_SESSION['role']) ? $_SESSION['role'] : 'user';
+$userDepartment = isset($_SESSION['user_department']) ? $_SESSION['user_department'] : '';
+$userName = isset($_SESSION['username']) ? $_SESSION['username'] : 'Usuário';
+
 // Construa a consulta SQL com os filtros
-$sql = "SELECT documents.id, documents.name, documents.description, documents.upload_time, documents.status, users.username AS uploaded_by, departments.name AS department, documents.file_path 
+$sql = "SELECT documents.id, documents.name, documents.description, documents.upload_time, documents.status, 
+               users.username AS uploaded_by, departments.name AS department, documents.file_path 
         FROM documents 
         JOIN users ON documents.user_id = users.id 
         JOIN departments ON documents.department_id = departments.id 
         WHERE 1=1";
 
+// Adicione os filtros opcionais
 if ($searchName != '') {
     $sql .= " AND documents.name LIKE '%" . $conn->real_escape_string($searchName) . "%'";
 }
@@ -41,13 +48,18 @@ if ($filterSubfolder != '') {
     $sql .= " AND documents.subfolder = '" . $conn->real_escape_string($filterSubfolder) . "'";
 }
 
+// Adicione a restrição para usuários normais
+if ($userRole === 'user' && !empty($userDepartment)) {
+    $sql .= " AND departments.name = '" . $conn->real_escape_string($userDepartment) . "'";
+}
+
 $sql .= " LIMIT " . $resultsPerPage;
 
 $result = $conn->query($sql);
 
 $documents = array();
-if ($result->num_rows > 0) {
-    while($row = $result->fetch_assoc()) {
+if ($result && $result->num_rows > 0) {
+    while ($row = $result->fetch_assoc()) {
         $documents[] = $row;
     }
 } else {
@@ -79,20 +91,19 @@ $sql = "SELECT COUNT(*) AS userCount FROM users";
 $userResult = $conn->query($sql);
 $userCount = $userResult->fetch_assoc()['userCount'];
 
-// Nome do usuário logado
-$userName = isset($_SESSION['username']) ? $_SESSION['username'] : 'Usuário';
-
+// Monte a resposta
 $response = array(
     "documents" => $documents,
-    "documentCount" => $documentCount, // Adiciona a contagem de documentos à resposta
-    "departmentCount" => $departmentCount, // Adiciona a contagem de departamentos à resposta
-    "folderCount" => $folderCount, // Adiciona a contagem de pastas à resposta
-    "subfolderCount" => $subfolderCount, // Adiciona a contagem de subpastas à resposta
-    "userCount" => $userCount, // Adiciona a contagem de usuários à resposta
-    "userRole" => isset($_SESSION['role']) ? $_SESSION['role'] : 'user', // Adiciona o userRole à resposta
-    "userName" => $userName // Adiciona o nome do usuário à resposta
+    "documentCount" => $documentCount,
+    "departmentCount" => $departmentCount,
+    "folderCount" => $folderCount,
+    "subfolderCount" => $subfolderCount,
+    "userCount" => $userCount,
+    "userRole" => $userRole,
+    "userName" => $userName
 );
 
+// Envie a resposta como JSON
 echo json_encode($response);
 
 $conn->close();
